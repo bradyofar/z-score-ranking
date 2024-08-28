@@ -164,29 +164,56 @@ Italy    1.19    0.48
         let costZScores = [];
         let overallScores = [];
 
-        function parseInputData(elementId) {
-            const inputData = document.getElementById(elementId).innerText.trim();
-            const rows = inputData.split('\n').filter(row => row.trim() !== '');
-            const headers = rows[0].split(/\s+/).map(cell => cell.trim());
-            rows.shift();
-            const data = rows.map(row => row.split(/\s+/).map(cell => cell.trim()));
-            const entities = data.map(row => row[0]);
-            const metrics = data.map(row => row.slice(1).map(val => {
-                let cleanVal = val.replace('%', '');
-                cleanVal = cleanVal.replace(/[^\d.-]/g, '');
-                if (cleanVal === "") return NaN;
-                return parseFloat(cleanVal);
-            }));
+function parseInputData(elementId) {
+    const inputData = document.getElementById(elementId).innerText.trim();
+    const rows = inputData.split('\n').filter(row => row.trim() !== '');
 
-            // Error Handling: Check for non-numeric values
-            if (metrics.some(row => row.some(isNaN))) {
-                document.getElementById(elementId).insertAdjacentHTML('afterend', 
-                    '<p class="error">Invalid data detected: Ensure all values are numeric and correctly formatted.</p>');
-                return { headers: [], entities: [], metrics: [] };
+    // Extract headers: Assume headers are separated by tabs or multiple spaces
+    const headers = rows[0].split(/\t|\s{2,}/).map(cell => cell.trim());
+
+    // Remove the first row since it's the headers
+    rows.shift();
+
+    // Extract data with enhanced parsing: correctly handle first column with spaces
+    const data = rows.map(row => {
+        const splitRow = row.split(/\t|\s{2,}/); // Split by tabs or multiple spaces
+        const entity = splitRow[0]; // First item is the entity name
+        const metrics = splitRow.slice(1).map(val => {
+            // Clean each metric value
+            let cleanVal = val.replace('%', '').replace(',', '.').trim();
+            cleanVal = cleanVal.replace(/[^\d.-]/g, ''); // Remove non-numeric characters
+            return cleanVal === "" ? NaN : parseFloat(cleanVal); // Convert to float or NaN
+        });
+        return { entity, metrics };
+    });
+
+    // Validate metrics: ignore the first column (entity names)
+    let invalidCells = [];
+    data.forEach((row, rowIndex) => {
+        row.metrics.forEach((val, colIndex) => {
+            if (isNaN(val)) {
+                // Identify invalid metrics, ignore the entity names
+                invalidCells.push(`Row ${rowIndex + 2}, Column ${headers[colIndex + 1]}`);
             }
+        });
+    });
 
-            return { headers, entities, metrics };
-        }
+    // Display error message if invalid metrics are found
+    if (invalidCells.length > 0) {
+        document.getElementById(elementId).insertAdjacentHTML(
+            'afterend',
+            `<p class="error">Invalid data detected in the following cells: ${invalidCells.join(', ')}. Ensure all values in metric columns are numeric and correctly formatted.</p>`
+        );
+        return { headers: [], entities: [], metrics: [] };
+    }
+
+    // Return the parsed data with entities and metrics separated
+    return { headers, entities: data.map(row => row.entity), metrics: data.map(row => row.metrics) };
+}
+
+
+
+
 
         function calculateMeanAndStd(arr) {
             const mean = arr.reduce((a, b) => a + b, 0) / arr.length;
