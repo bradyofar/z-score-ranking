@@ -173,9 +173,11 @@ Italy    1.19    0.48
         <div id="costResults" class="results"></div>
         <div id="overallResults" class="results"></div>
 
-        <div class="chart-container">
-            <canvas id="overallChart"></canvas>
-        </div>
+<div class="chart-container">
+    <h3 id="chartTitle" style="text-align: center; margin-bottom: 10px;"></h3> <!-- Placeholder for the chart title -->
+    <canvas id="overallChart"></canvas>
+</div>
+
     </div>
 
     <!-- Include Chart.js Library -->
@@ -345,6 +347,10 @@ function calculateOverallRanking() {
             const ctx = document.getElementById('overallChart').getContext('2d');
             const labels = overallScores.map(item => item.entity);
             const data = overallScores.map(item => item.overallZ);
+
+   	 // Set the chart title to "Z-Value Performance Index"
+ 	   const chartTitle = 'Z-Value Performance Index';
+    	document.getElementById('chartTitle').innerText = chartTitle;
             
             // Destroy existing chart if exists
             if (window.overallChartInstance) {
