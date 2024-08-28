@@ -271,6 +271,9 @@ function parseInputData(elementId) {
             if (!metrics.length || metrics.some(row => row.some(isNaN))) {
                 document.getElementById('costResults').innerHTML = '<p class="error">Please enter valid numbers for cost metrics.</p>';
                 return;
+
+                  // Call displayResults to render the Cost Z-Scores table
+    displayResults('costResults', headers, costZScores, 'Cost');
             }
 
             const zScoresByMetric = headers.slice(1).map((_, colIndex) => {
@@ -288,18 +291,22 @@ function parseInputData(elementId) {
             displayResults('costResults', headers, costZScores, 'Cost');
         }
 
-        function displayResults(elementId, headers, scores, type) {
-            let resultHTML = `<h3>${type} Results (Sorted by Z-Score):</h3><table>
-                              <tr><th>${headers[0]}</th><th>Total Z-Score</th></tr>`;
-            scores.forEach(item => {
-                resultHTML += `<tr>
-                                <td>${item.entity}</td>
-                                <td>${item.totalZScore}</td>
-                               </tr>`;
-            });
-            resultHTML += '</table>';
-            document.getElementById(elementId).innerHTML = resultHTML;
-        }
+function displayResults(elementId, headers, scores, type) {
+    // Set the column header based on the type of results
+    const zScoreLabel = type === 'Performance' ? 'Performance Z-Score' : 'Cost Z-Score';
+
+    let resultHTML = `<h3>${type} Results (Sorted by Z-Score):</h3><table>
+                      <tr><th>${headers[0]}</th><th>${zScoreLabel}</th></tr>`;
+    scores.forEach(item => {
+        resultHTML += `<tr>
+                        <td>${item.entity}</td>
+                        <td>${item.totalZScore}</td>
+                       </tr>`;
+    });
+    resultHTML += '</table>';
+    document.getElementById(elementId).innerHTML = resultHTML;
+}
+
 
 function calculateOverallRanking() {
     // Extract the first column header from performance data
