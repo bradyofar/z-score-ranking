@@ -300,35 +300,46 @@ function parseInputData(elementId) {
             document.getElementById(elementId).innerHTML = resultHTML;
         }
 
-        function calculateOverallRanking() {
-            if (performanceZScores.length === 0 || costZScores.length === 0) {
-                document.getElementById('overallResults').innerHTML = '<p class="error">Please calculate both performance and cost Z-scores first.</p>';
-                return;
-            }
-            overallScores = performanceZScores.map(perf => {
-                const cost = costZScores.find(c => c.entity === perf.entity);
-                return {
-                    entity: perf.entity,
-                    performanceZ: parseFloat(perf.totalZScore),
-                    costZ: parseFloat(cost ? cost.totalZScore : 0),
-                    overallZ: parseFloat(perf.totalZScore) + parseFloat(cost ? cost.totalZScore : 0)
-                };
-            });
-            overallScores.sort((a, b) => b.overallZ - a.overallZ);
-            let resultHTML = `<h3>Overall Performance Ranking:</h3><table>
-                              <tr><th>Entity</th><th>Performance Z-Score</th><th>Cost Z-Score</th><th>Overall Z-Score</th></tr>`;
-            overallScores.forEach(item => {
-                resultHTML += `<tr>
-                                <td>${item.entity}</td>
-                                <td>${item.performanceZ.toFixed(6)}</td>
-                                <td>${item.costZ.toFixed(6)}</td>
-                                <td>${item.overallZ.toFixed(6)}</td>
-                               </tr>`;
-            });
-            resultHTML += '</table>';
-            document.getElementById('overallResults').innerHTML = resultHTML;
-            renderOverallChart();
-        }
+function calculateOverallRanking() {
+    // Extract the first column header from performance data
+    const { headers: performanceHeaders } = parseInputData('performanceData');
+
+    if (performanceZScores.length === 0 || costZScores.length === 0) {
+        document.getElementById('overallResults').innerHTML = '<p class="error">Please calculate both performance and cost Z-scores first.</p>';
+        return;
+    }
+
+    // Combine performance and cost scores into overall scores
+    overallScores = performanceZScores.map(perf => {
+        const cost = costZScores.find(c => c.entity === perf.entity);
+        return {
+            entity: perf.entity,
+            performanceZ: parseFloat(perf.totalZScore),
+            costZ: parseFloat(cost ? cost.totalZScore : 0),
+            overallZ: parseFloat(perf.totalZScore) + parseFloat(cost ? cost.totalZScore : 0)
+        };
+    });
+
+    // Sort by overall Z-score
+    overallScores.sort((a, b) => b.overallZ - a.overallZ);
+
+    // Use the extracted header for column A
+    const columnAHeader = performanceHeaders[0] || 'Entity'; // Fallback to 'Entity' if header is missing
+    let resultHTML = `<h3>Overall Performance Ranking:</h3><table>
+                      <tr><th>${columnAHeader}</th><th>Performance Z-Score</th><th>Cost Z-Score</th><th>Overall Z-Score</th></tr>`;
+    overallScores.forEach(item => {
+        resultHTML += `<tr>
+                        <td>${item.entity}</td>
+                        <td>${item.performanceZ.toFixed(6)}</td>
+                        <td>${item.costZ.toFixed(6)}</td>
+                        <td>${item.overallZ.toFixed(6)}</td>
+                       </tr>`;
+    });
+    resultHTML += '</table>';
+    document.getElementById('overallResults').innerHTML = resultHTML;
+    renderOverallChart();
+}
+
 
         function renderOverallChart() {
             const ctx = document.getElementById('overallChart').getContext('2d');
