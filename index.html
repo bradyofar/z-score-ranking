@@ -10,7 +10,7 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #f1623c; /* Light cream color to match the background */
+    background-color: #f1623c;
     color: #333;
 }
 
@@ -18,31 +18,28 @@ body {
     max-width: 1200px;
     margin: 40px auto;
     padding: 20px;
-    background-color: #fff; /* White background for content area */
+    background-color: #fff;
     border-radius: 4px;
-
 }
 
 h1 {
     text-align: center;
-    color: #f1623c; /* Orange-red color to match the theme */
+    color: #f1623c;
     margin-bottom: 20px;
     font-size: 32px;
 }
 
-
-
 .input-section {
     display: flex;
     flex-direction: column;
-    align-items: center; /* Center the content horizontally */
+    align-items: center;
     margin-bottom: 30px;
     text-align: center;
 }
 
 .instruction-text {
     font-size: 18px;
-    color: #333; /* Dark color for readability */
+    color: #333;
     margin-bottom: 10px;
     text-align: center;
     display: block;
@@ -51,8 +48,8 @@ h1 {
 
 .spreadsheet-input {
     display: block;
-    width: 80%; /* Adjust width as needed for proper centering */
-    max-width: 1000px; /* Optional: Limit the maximum width */
+    width: 80%;
+    max-width: 1000px;
     height: 150px;
     border: 1px solid #dcdcdc;
     border-radius: 4px;
@@ -63,7 +60,7 @@ h1 {
     background-color: #fafafa;
     caret-color: black;
     outline: none;
-    margin: 0 auto; /* Center the input box */
+    margin: 0 auto;
 }
 
 .spreadsheet-input::placeholder {
@@ -82,7 +79,7 @@ button {
     padding: 12px 20px;
     border: none;
     border-radius: 4px;
-    background-color: #f1623c; /* Primary orange color for buttons */
+    background-color: #f1623c;
     color: white;
     cursor: pointer;
     font-size: 16px;
@@ -91,7 +88,7 @@ button {
 }
 
 button:hover {
-    background-color: #d94d1a; /* Darker shade of orange for hover effect */
+    background-color: #d94d1a;
 }
 
 .results {
@@ -99,7 +96,7 @@ button:hover {
 }
 
 .error {
-    color: #d94d1a; /* Red-orange for error messages */
+    color: #d94d1a;
     font-size: 14px;
     margin-top: 5px;
 }
@@ -114,7 +111,17 @@ th, td {
     border: 1px solid #ddd;
     padding: 12px;
     text-align: center;
-    width: 50%; /* Set equal width for all columns */
+}
+
+/* Specific styling to partition columns at 50% for the first two tables */
+#performanceResults table th, #performanceResults table td,
+#costResults table th, #costResults table td {
+    width: 50%;
+}
+
+/* Styling for the Overall Performance Ranking table to partition at 25% */
+#overallResults table th, #overallResults table td {
+    width: 25%;
 }
 
 th {
@@ -122,7 +129,6 @@ th {
     font-weight: 600;
     color: #d94d1a;
 }
-
 
 .chart-container {
     width: 100%;
@@ -176,10 +182,10 @@ Italy    1.19    0.48
         <div id="costResults" class="results"></div>
         <div id="overallResults" class="results"></div>
 
-<div class="chart-container">
-    <h3 id="chartTitle" style="text-align: center; margin-bottom: 10px;"></h3> <!-- Placeholder for the chart title -->
-    <canvas id="overallChart"></canvas>
-</div>
+        <div class="chart-container">
+            <h3 id="chartTitle" style="text-align: center; margin-bottom: 10px;"></h3>
+            <canvas id="overallChart"></canvas>
+        </div>
 
     </div>
 
@@ -191,56 +197,43 @@ Italy    1.19    0.48
         let costZScores = [];
         let overallScores = [];
 
-function parseInputData(elementId) {
-    const inputData = document.getElementById(elementId).innerText.trim();
-    const rows = inputData.split('\n').filter(row => row.trim() !== '');
+        function parseInputData(elementId) {
+            const inputData = document.getElementById(elementId).innerText.trim();
+            const rows = inputData.split('\n').filter(row => row.trim() !== '');
 
-    // Extract headers: Assume headers are separated by tabs or multiple spaces
-    const headers = rows[0].split(/\t|\s{2,}/).map(cell => cell.trim());
+            const headers = rows[0].split(/\t|\s{2,}/).map(cell => cell.trim());
+            rows.shift();
 
-    // Remove the first row since it's the headers
-    rows.shift();
+            const data = rows.map(row => {
+                const splitRow = row.split(/\t|\s{2,}/);
+                const entity = splitRow[0];
+                const metrics = splitRow.slice(1).map(val => {
+                    let cleanVal = val.replace('%', '').replace(',', '.').trim();
+                    cleanVal = cleanVal.replace(/[^\d.-]/g, '');
+                    return cleanVal === "" ? NaN : parseFloat(cleanVal);
+                });
+                return { entity, metrics };
+            });
 
-    // Extract data with enhanced parsing: correctly handle first column with spaces
-    const data = rows.map(row => {
-        const splitRow = row.split(/\t|\s{2,}/); // Split by tabs or multiple spaces
-        const entity = splitRow[0]; // First item is the entity name
-        const metrics = splitRow.slice(1).map(val => {
-            // Clean each metric value
-            let cleanVal = val.replace('%', '').replace(',', '.').trim();
-            cleanVal = cleanVal.replace(/[^\d.-]/g, ''); // Remove non-numeric characters
-            return cleanVal === "" ? NaN : parseFloat(cleanVal); // Convert to float or NaN
-        });
-        return { entity, metrics };
-    });
+            let invalidCells = [];
+            data.forEach((row, rowIndex) => {
+                row.metrics.forEach((val, colIndex) => {
+                    if (isNaN(val)) {
+                        invalidCells.push(`Row ${rowIndex + 2}, Column ${headers[colIndex + 1]}`);
+                    }
+                });
+            });
 
-    // Validate metrics: ignore the first column (entity names)
-    let invalidCells = [];
-    data.forEach((row, rowIndex) => {
-        row.metrics.forEach((val, colIndex) => {
-            if (isNaN(val)) {
-                // Identify invalid metrics, ignore the entity names
-                invalidCells.push(`Row ${rowIndex + 2}, Column ${headers[colIndex + 1]}`);
+            if (invalidCells.length > 0) {
+                document.getElementById(elementId).insertAdjacentHTML(
+                    'afterend',
+                    `<p class="error">Invalid data detected in the following cells: ${invalidCells.join(', ')}. Ensure all values in metric columns are numeric and correctly formatted.</p>`
+                );
+                return { headers: [], entities: [], metrics: [] };
             }
-        });
-    });
 
-    // Display error message if invalid metrics are found
-    if (invalidCells.length > 0) {
-        document.getElementById(elementId).insertAdjacentHTML(
-            'afterend',
-            `<p class="error">Invalid data detected in the following cells: ${invalidCells.join(', ')}. Ensure all values in metric columns are numeric and correctly formatted.</p>`
-        );
-        return { headers: [], entities: [], metrics: [] };
-    }
-
-    // Return the parsed data with entities and metrics separated
-    return { headers, entities: data.map(row => row.entity), metrics: data.map(row => row.metrics) };
-}
-
-
-
-
+            return { headers, entities: data.map(row => row.entity), metrics: data.map(row => row.metrics) };
+        }
 
         function calculateMeanAndStd(arr) {
             const mean = arr.reduce((a, b) => a + b, 0) / arr.length;
@@ -275,15 +268,12 @@ function parseInputData(elementId) {
             if (!metrics.length || metrics.some(row => row.some(isNaN))) {
                 document.getElementById('costResults').innerHTML = '<p class="error">Please enter valid numbers for cost metrics.</p>';
                 return;
-
-                  // Call displayResults to render the Cost Z-Scores table
-    displayResults('costResults', headers, costZScores, 'Cost');
             }
 
             const zScoresByMetric = headers.slice(1).map((_, colIndex) => {
                 const columnData = metrics.map(row => row[colIndex]);
                 const stats = calculateMeanAndStd(columnData);
-                return columnData.map(value => -((value - stats.mean) / stats.std).toFixed(6)); // Inversing Z-score
+                return columnData.map(value => -((value - stats.mean) / stats.std).toFixed(6));
             });
 
             costZScores = entities.map((entity, rowIndex) => {
@@ -295,79 +285,69 @@ function parseInputData(elementId) {
             displayResults('costResults', headers, costZScores, 'Cost');
         }
 
-function displayResults(elementId, headers, scores, type) {
-    // Set the column header based on the type of results
-    const zScoreLabel = type === 'Performance' ? 'Performance Z-Score' : 'Cost Z-Score';
+        function displayResults(elementId, headers, scores, type) {
+            const zScoreLabel = type === 'Performance' ? 'Performance Z-Score' : 'Cost Z-Score';
 
-    let resultHTML = `<h3>${type} Results (Sorted by Z-Score):</h3><table>
-                      <tr><th>${headers[0]}</th><th>${zScoreLabel}</th></tr>`;
-    scores.forEach(item => {
-        resultHTML += `<tr>
-                        <td>${item.entity}</td>
-                        <td>${item.totalZScore}</td>
-                       </tr>`;
-    });
-    resultHTML += '</table>';
-    document.getElementById(elementId).innerHTML = resultHTML;
-}
+            let resultHTML = `<h3>${type} Results (Sorted by Z-Score):</h3><table>
+                              <tr><th>${headers[0]}</th><th>${zScoreLabel}</th></tr>`;
+            scores.forEach(item => {
+                resultHTML += `<tr>
+                                <td>${item.entity}</td>
+                                <td>${item.totalZScore}</td>
+                               </tr>`;
+            });
+            resultHTML += '</table>';
+            document.getElementById(elementId).innerHTML = resultHTML;
+        }
 
+        function calculateOverallRanking() {
+            const { headers: performanceHeaders } = parseInputData('performanceData');
 
-function calculateOverallRanking() {
-    // Extract the first column header from performance data
-    const { headers: performanceHeaders } = parseInputData('performanceData');
+            if (performanceZScores.length === 0 || costZScores.length === 0) {
+                document.getElementById('overallResults').innerHTML = '<p class="error">Please calculate both performance and cost Z-scores first.</p>';
+                return;
+            }
 
-    if (performanceZScores.length === 0 || costZScores.length === 0) {
-        document.getElementById('overallResults').innerHTML = '<p class="error">Please calculate both performance and cost Z-scores first.</p>';
-        return;
-    }
+            overallScores = performanceZScores.map(perf => {
+                const cost = costZScores.find(c => c.entity === perf.entity);
+                return {
+                    entity: perf.entity,
+                    performanceZ: parseFloat(perf.totalZScore),
+                    costZ: parseFloat(cost ? cost.totalZScore : 0),
+                    overallZ: parseFloat(perf.totalZScore) + parseFloat(cost ? cost.totalZScore : 0)
+                };
+            });
 
-    // Combine performance and cost scores into overall scores
-    overallScores = performanceZScores.map(perf => {
-        const cost = costZScores.find(c => c.entity === perf.entity);
-        return {
-            entity: perf.entity,
-            performanceZ: parseFloat(perf.totalZScore),
-            costZ: parseFloat(cost ? cost.totalZScore : 0),
-            overallZ: parseFloat(perf.totalZScore) + parseFloat(cost ? cost.totalZScore : 0)
-        };
-    });
+            overallScores.sort((a, b) => b.overallZ - a.overallZ);
 
-    // Sort by overall Z-score
-    overallScores.sort((a, b) => b.overallZ - a.overallZ);
-
-    // Use the extracted header for column A
-    const columnAHeader = performanceHeaders[0] || 'Entity'; // Fallback to 'Entity' if header is missing
-    let resultHTML = `<h3>Overall Performance Ranking:</h3><table>
-                      <tr><th>${columnAHeader}</th><th>Performance Z-Score</th><th>Cost Z-Score</th><th>Overall Z-Score</th></tr>`;
-    overallScores.forEach(item => {
-        resultHTML += `<tr>
-                        <td>${item.entity}</td>
-                        <td>${item.performanceZ.toFixed(6)}</td>
-                        <td>${item.costZ.toFixed(6)}</td>
-                        <td>${item.overallZ.toFixed(6)}</td>
-                       </tr>`;
-    });
-    resultHTML += '</table>';
-    document.getElementById('overallResults').innerHTML = resultHTML;
-    renderOverallChart();
-}
-
+            const columnAHeader = performanceHeaders[0] || 'Entity';
+            let resultHTML = `<h3>Overall Performance Ranking:</h3><table>
+                              <tr><th>${columnAHeader}</th><th>Performance Z-Score</th><th>Cost Z-Score</th><th>Overall Z-Score</th></tr>`;
+            overallScores.forEach(item => {
+                resultHTML += `<tr>
+                                <td>${item.entity}</td>
+                                <td>${item.performanceZ.toFixed(6)}</td>
+                                <td>${item.costZ.toFixed(6)}</td>
+                                <td>${item.overallZ.toFixed(6)}</td>
+                               </tr>`;
+            });
+            resultHTML += '</table>';
+            document.getElementById('overallResults').innerHTML = resultHTML;
+            renderOverallChart();
+        }
 
         function renderOverallChart() {
             const ctx = document.getElementById('overallChart').getContext('2d');
             const labels = overallScores.map(item => item.entity);
             const data = overallScores.map(item => item.overallZ);
 
-   	 // Set the chart title to "Z-Value Performance Index"
- 	   const chartTitle = 'Z-Value Performance Index';
-    	document.getElementById('chartTitle').innerText = chartTitle;
-            
-            // Destroy existing chart if exists
+            const chartTitle = 'Z-Value Performance Index';
+            document.getElementById('chartTitle').innerText = chartTitle;
+
             if (window.overallChartInstance) {
                 window.overallChartInstance.destroy();
             }
 
-            // Create new chart
             window.overallChartInstance = new Chart(ctx, {
                 type: 'bar',
                 data: {
