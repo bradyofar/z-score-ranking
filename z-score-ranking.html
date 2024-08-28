@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Z-Score Calculator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+        .input-section {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .instruction-text {
+            font-size: 20px;
+            color: #34495e;
+            margin-bottom: 10px;
+            text-align: center; /* Centering text */
+            display: block;
+            width: 100%;
+        }
+        .spreadsheet-input {
+            display: block;
+            width: 100%;
+            height: 150px;
+            border: 1px solid #dcdcdc;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: monospace;
+            white-space: pre;
+            overflow: auto;
+            background-color: #fafafa;
+            caret-color: black;
+            outline: none;
+        }
+        .spreadsheet-input::placeholder {
+            color: #888;
+            font-style: italic;
+            text-align: left;
+            line-height: 1.5;
+        }
+        .button-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            background-color: #3498db;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .results {
+            margin-top: 20px;
+        }
+        .error {
+            color: red;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
+        th {
+            background-color: #ecf0f1;
+            font-weight: 600;
+        }
+        .chart-container {
+            width: 100%;
+            max-width: 600px;
+            margin: 30px auto;
+        }
+        .chart-container canvas {
+            display: block;
+            max-width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Z-Score Calculator</h1>
+        
+        <div class="input-section">
+            <span class="instruction-text">Paste your performance data below (including headers, e.g., Engagement rate, Click-through rates):</span>
+            <div class="spreadsheet-input" contenteditable="true" id="performanceData" 
+                 placeholder="Country [TAB] CTR [TAB] E/R&#10;France [TAB] 35.74% [TAB] 46.91%&#10;Germany [TAB] 15.37% [TAB] 48.66%&#10;Italy [TAB] 27.41% [TAB] 19.81%">
+Country    CTR    E/R
+France    0.74%    46.91%
+Germany    0.37%    48.66%
+Italy    0.41%    19.81%
+            </div>
+            <div class="button-container">
+                <button onclick="calculatePerformanceZScores()">Calculate Performance Z-Scores</button>
+            </div>
+        </div>
+
+        <div class="input-section">
+            <span class="instruction-text">Paste your cost data below (including headers, e.g., CPM, CPC where lower is better):</span>
+            <div class="spreadsheet-input" contenteditable="true" id="costData" 
+                 placeholder="Country [TAB] CPM [TAB] CPC&#10;France [TAB] 1.06 [TAB] 0.45&#10;Germany [TAB] 1.13 [TAB] 0.52&#10;Italy [TAB] 1.19 [TAB] 0.48">
+Country    CPM    CPC
+France    1.06    0.45
+Germany    1.13    0.52
+Italy    1.19    0.48
+            </div>
+            <div class="button-container">
+                <button onclick="calculateCostZScores()">Calculate Cost Z-Scores</button>
+            </div>
+        </div>
+
+        <div class="button-container">
+            <button onclick="calculateOverallRanking()">Calculate Overall Ranking</button>
+        </div>
+
+        <div id="performanceResults" class="results"></div>
+        <div id="costResults" class="results"></div>
+        <div id="overallResults" class="results"></div>
+
+        <div class="chart-container">
+            <canvas id="overallChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Include Chart.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        let performanceZScores = [];
+        let costZScores = [];
+        let overallScores = [];
+
+        function parseInputData(elementId) {
+            const inputData = document.getElementById(elementId).innerText.trim();
+            const rows = inputData.split('\n').filter(row => row.trim() !== '');
+            const headers = rows[0].split(/\s+/).map(cell => cell.trim());
+            rows.shift();
+            const data = rows.map(row => row.split(/\s+/).map(cell => cell.trim()));
+            const entities = data.map(row => row[0]);
+            const metrics = data.map(row => row.slice(1).map(val => {
+                let cleanVal = val.replace('%', '');
+                cleanVal = cleanVal.replace(/[^\d.-]/g, '');
+                if (cleanVal === "") return NaN;
+                return parseFloat(cleanVal);
+            }));
+
+            // Error Handling: Check for non-numeric values
+            if (metrics.some(row => row.some(isNaN))) {
+                document.getElementById(elementId).insertAdjacentHTML('afterend', 
+                    '<p class="error">Invalid data detected: Ensure all values are numeric and correctly formatted.</p>');
+                return { headers: [], entities: [], metrics: [] };
+            }
+
+            return { headers, entities, metrics };
+        }
+
+        function calculateMeanAndStd(arr) {
+            const mean = arr.reduce((a, b) => a + b, 0) / arr.length;
+            const std = Math.sqrt(arr.map(x => Math.pow(x - mean, 2)).reduce((a, b) => a + b) / arr.length);
+            return { mean, std };
+        }
+
+        function calculatePerformanceZScores() {
+            const { headers, entities, metrics } = parseInputData('performanceData');
+            if (!metrics.length || metrics.some(row => row.some(isNaN))) {
+                document.getElementById('performanceResults').innerHTML = '<p class="error">Please enter valid numbers for performance metrics.</p>';
+                return;
+            }
+
+            const zScoresByMetric = headers.slice(1).map((_, colIndex) => {
+                const columnData = metrics.map(row => row[colIndex]);
+                const stats = calculateMeanAndStd(columnData);
+                return columnData.map(value => ((value - stats.mean) / stats.std).toFixed(6));
+            });
+
+            performanceZScores = entities.map((entity, rowIndex) => {
+                const totalZScore = zScoresByMetric.reduce((sum, colZScores) => sum + parseFloat(colZScores[rowIndex]), 0);
+                return { entity, totalZScore: totalZScore.toFixed(6) };
+            });
+
+            performanceZScores.sort((a, b) => b.totalZScore - a.totalZScore);
+            displayResults('performanceResults', headers, performanceZScores, 'Performance');
+        }
+
+        function calculateCostZScores() {
+            const { headers, entities, metrics } = parseInputData('costData');
+            if (!metrics.length || metrics.some(row => row.some(isNaN))) {
+                document.getElementById('costResults').innerHTML = '<p class="error">Please enter valid numbers for cost metrics.</p>';
+                return;
+            }
+
+            const zScoresByMetric = headers.slice(1).map((_, colIndex) => {
+                const columnData = metrics.map(row => row[colIndex]);
+                const stats = calculateMeanAndStd(columnData);
+                return columnData.map(value => -((value - stats.mean) / stats.std).toFixed(6)); // Inversing Z-score
+            });
+
+            costZScores = entities.map((entity, rowIndex) => {
+                const totalZScore = zScoresByMetric.reduce((sum, colZScores) => sum + parseFloat(colZScores[rowIndex]), 0);
+                return { entity, totalZScore: totalZScore.toFixed(6) };
+            });
+
+            costZScores.sort((a, b) => b.totalZScore - a.totalZScore);
+            displayResults('costResults', headers, costZScores, 'Cost');
+        }
+
+        function displayResults(elementId, headers, scores, type) {
+            let resultHTML = `<h3>${type} Results (Sorted by Z-Score):</h3><table>
+                              <tr><th>${headers[0]}</th><th>Total Z-Score</th></tr>`;
+            scores.forEach(item => {
+                resultHTML += `<tr>
+                                <td>${item.entity}</td>
+                                <td>${item.totalZScore}</td>
+                               </tr>`;
+            });
+            resultHTML += '</table>';
+            document.getElementById(elementId).innerHTML = resultHTML;
+        }
+
+        function calculateOverallRanking() {
+            if (performanceZScores.length === 0 || costZScores.length === 0) {
+                document.getElementById('overallResults').innerHTML = '<p class="error">Please calculate both performance and cost Z-scores first.</p>';
+                return;
+            }
+            overallScores = performanceZScores.map(perf => {
+                const cost = costZScores.find(c => c.entity === perf.entity);
+                return {
+                    entity: perf.entity,
+                    performanceZ: parseFloat(perf.totalZScore),
+                    costZ: parseFloat(cost ? cost.totalZScore : 0),
+                    overallZ: parseFloat(perf.totalZScore) + parseFloat(cost ? cost.totalZScore : 0)
+                };
+            });
+            overallScores.sort((a, b) => b.overallZ - a.overallZ);
+            let resultHTML = `<h3>Overall Performance Ranking:</h3><table>
+                              <tr><th>Entity</th><th>Performance Z-Score</th><th>Cost Z-Score</th><th>Overall Z-Score</th></tr>`;
+            overallScores.forEach(item => {
+                resultHTML += `<tr>
+                                <td>${item.entity}</td>
+                                <td>${item.performanceZ.toFixed(6)}</td>
+                                <td>${item.costZ.toFixed(6)}</td>
+                                <td>${item.overallZ.toFixed(6)}</td>
+                               </tr>`;
+            });
+            resultHTML += '</table>';
+            document.getElementById('overallResults').innerHTML = resultHTML;
+            renderOverallChart();
+        }
+
+        function renderOverallChart() {
+            const ctx = document.getElementById('overallChart').getContext('2d');
+            const labels = overallScores.map(item => item.entity);
+            const data = overallScores.map(item => item.overallZ);
+            
+            // Destroy existing chart if exists
+            if (window.overallChartInstance) {
+                window.overallChartInstance.destroy();
+            }
+
+            // Create new chart
+            window.overallChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Overall Z-Score',
+                        data: data,
+                        backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    scales: {
+                        x: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
