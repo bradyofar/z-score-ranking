@@ -6,149 +6,163 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Z-Score Ranking Calculator</title>
     <style>
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #f1623c;
-    color: #333;
-}
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f1623c;
+            color: #333;
+        }
 
-.container {
-    max-width: 1200px;
-    margin: 40px auto;
-    padding: 20px;
-    background-color: #fff;
-    border-radius: 4px;
-}
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 4px;
+        }
 
-h1 {
-    text-align: center;
-    color: #f1623c;
-    margin-bottom: 20px;
-    font-size: 32px;
-}
+        h1 {
+            text-align: center;
+            color: #f1623c;
+            margin-bottom: 20px;
+            font-size: 32px;
+        }
 
-.input-section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-bottom: 30px;
-    text-align: center;
-}
+        .input-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 30px;
+            text-align: center;
+        }
 
-.instruction-text {
-    font-size: 18px;
-    color: #333;
-    margin-bottom: 10px;
-    text-align: center;
-    display: block;
-    width: 100%;
-}
+        .instruction-text {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+            display: block;
+            width: 100%;
+        }
 
-.spreadsheet-input {
-    display: block;
-    width: 80%;
-    max-width: 1000px;
-    height: 150px;
-    border: 1px solid #dcdcdc;
-    border-radius: 4px;
-    padding: 10px;
-    font-family: monospace;
-    white-space: pre;
-    overflow: auto;
-    background-color: #fafafa;
-    caret-color: black;
-    outline: none;
-    margin: 0 auto;
-}
+        .spreadsheet-input {
+            display: block;
+            width: 80%;
+            max-width: 1000px;
+            height: 150px;
+            border: 1px solid #dcdcdc;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: monospace;
+            white-space: pre;
+            overflow: auto;
+            background-color: #fafafa;
+            caret-color: black;
+            outline: none;
+            margin: 0 auto;
+        }
 
-.spreadsheet-input::placeholder {
-    color: #888;
-    font-style: italic;
-    line-height: 1.5;
-}
+        .spreadsheet-input::placeholder {
+            color: #888;
+            font-style: italic;
+            line-height: 1.5;
+        }
 
-.button-container {
-    display: flex;
-    justify-content: center;
-    margin-top: 15px;
-}
+        .button-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 15px;
+        }
 
-button {
-    padding: 12px 20px;
-    border: none;
-    border-radius: 4px;
-    background-color: #f1623c;
-    color: white;
-    cursor: pointer;
-    font-size: 16px;
-    margin: 5px;
-    transition: background-color 0.3s ease;
-}
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            background-color: #f1623c;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+            transition: background-color 0.3s ease;
+        }
 
-button:hover {
-    background-color: #d94d1a;
-}
+        button:hover {
+            background-color: #d94d1a;
+        }
 
-.results {
-    margin-top: 20px;
-}
+        .results {
+            margin-top: 20px;
+        }
 
-.error {
-    color: #d94d1a;
-    font-size: 14px;
-    margin-top: 5px;
-}
+        .error {
+            color: #d94d1a;
+            font-size: 14px;
+            margin-top: 5px;
+        }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-}
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
 
-th, td {
-    border: 1px solid #ddd;
-    padding: 12px;
-    text-align: center;
-}
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
 
-/* Specific styling to partition columns at 50% for the first two tables */
-#performanceResults table th, #performanceResults table td,
-#costResults table th, #costResults table td {
-    width: 50%;
-}
+        #performanceResults table th, #performanceResults table td,
+        #costResults table th, #costResults table td {
+            width: 50%;
+        }
 
-/* Styling for the Overall Performance Ranking table to partition at 25% */
-#overallResults table th, #overallResults table td {
-    width: 25%;
-}
+        #overallResults table th, #overallResults table td {
+            width: 25%;
+        }
 
-th {
-    background-color: #f7f4f0;
-    font-weight: 600;
-    color: #d94d1a;
-}
+        th {
+            background-color: #f7f4f0;
+            font-weight: 600;
+            color: #d94d1a;
+        }
 
-.chart-container {
-    width: 100%;
-    max-width: 600px;
-    margin: 40px auto;
-}
+        .chart-container {
+            width: 100%;
+            max-width: 600px;
+            margin: 40px auto;
+        }
 
-.chart-container canvas {
-    display: block;
-    max-width: 100%;
-}
+        .chart-container canvas {
+            display: block;
+            max-width: 100%;
+        }
+
+        .checkbox-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+
+        .checkbox-container label {
+            margin-right: 20px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Z-Score Ranking Index</h1>
-	        <p class="intro-text">
-            The Z-Score Ranking Index standardises performance comparisons across entities using key metrics like engagement rates and cost efficiency. By measuring how each data point deviates from the average, this tool allows for fair and consistent comparisons, highlighting top performers and areas for improvement, and turning complex data into actionable insights.
-        </p>
-        
+<p class="intro-text">
+    The Z-Score Ranking Index standardises performance comparisons across entities using key metrics like engagement rates and cost efficiency by transforming each metric to a common scale based on its mean and standard deviation. <br><br> 
+Additionally, options to apply Logarithmic Transformation and Min-Max Normalization can further refine the analysis. Logarithmic Transformation is useful for handling skewed data by compressing extreme values, while Min-Max Normalization scales all values between 0 and 1, enhancing visual representation and interpretability. Together, these features ensure fair, consistent, and actionable insights into performance and cost efficiency. <br><br>
+</p>
+
+        <div class="checkbox-container">
+            <label><input type="checkbox" id="logTransform"> Apply Logarithmic Transformation</label>
+            <label><input type="checkbox" id="minMaxNormalize"> Apply Min-Max Normalization</label>
+        </div>
+
         <div class="input-section">
             <span class="instruction-text">Paste your performance data below (including headers e.g., Engagement rate, Click-through rates):</span>
             <div class="spreadsheet-input" contenteditable="true" id="performanceData" 
@@ -199,6 +213,7 @@ Italy    1.19    0.48
         let performanceZScores = [];
         let costZScores = [];
         let overallScores = [];
+        let transformationInfo = '';
 
         function parseInputData(elementId) {
             const inputData = document.getElementById(elementId).innerText.trim();
@@ -238,6 +253,40 @@ Italy    1.19    0.48
             return { headers, entities: data.map(row => row.entity), metrics: data.map(row => row.metrics) };
         }
 
+        function applyLogTransform(data) {
+            transformationInfo += 'Logarithmic Transformation, ';
+            return data.map(row => row.map(value => Math.log(value)));
+        }
+
+        function applyMinMaxNormalization(data) {
+            transformationInfo += 'Min-Max Normalization, ';
+            const minValues = data[0].map((_, colIndex) => Math.min(...data.map(row => row[colIndex])));
+            const maxValues = data[0].map((_, colIndex) => Math.max(...data.map(row => row[colIndex])));
+            return data.map(row => row.map((value, colIndex) => (value - minValues[colIndex]) / (maxValues[colIndex] - minValues[colIndex])));
+        }
+
+        function preprocessData(data) {
+            const logTransform = document.getElementById('logTransform').checked;
+            const minMaxNormalize = document.getElementById('minMaxNormalize').checked;
+
+            transformationInfo = '';
+
+            if (logTransform) {
+                data = applyLogTransform(data);
+            }
+            if (minMaxNormalize) {
+                data = applyMinMaxNormalization(data);
+            }
+
+            if (transformationInfo === '') {
+                transformationInfo = 'No transformations applied';
+            } else {
+                transformationInfo = transformationInfo.slice(0, -2); // Remove the trailing comma and space
+            }
+
+            return data;
+        }
+
         function calculateMeanAndStd(arr) {
             const mean = arr.reduce((a, b) => a + b, 0) / arr.length;
             const std = Math.sqrt(arr.map(x => Math.pow(x - mean, 2)).reduce((a, b) => a + b) / arr.length);
@@ -245,7 +294,8 @@ Italy    1.19    0.48
         }
 
         function calculatePerformanceZScores() {
-            const { headers, entities, metrics } = parseInputData('performanceData');
+            let { headers, entities, metrics } = parseInputData('performanceData');
+            metrics = preprocessData(metrics);
             if (!metrics.length || metrics.some(row => row.some(isNaN))) {
                 document.getElementById('performanceResults').innerHTML = '<p class="error">Please enter valid numbers for performance metrics.</p>';
                 return;
@@ -267,7 +317,8 @@ Italy    1.19    0.48
         }
 
         function calculateCostZScores() {
-            const { headers, entities, metrics } = parseInputData('costData');
+            let { headers, entities, metrics } = parseInputData('costData');
+            metrics = preprocessData(metrics);
             if (!metrics.length || metrics.some(row => row.some(isNaN))) {
                 document.getElementById('costResults').innerHTML = '<p class="error">Please enter valid numbers for cost metrics.</p>';
                 return;
@@ -291,7 +342,9 @@ Italy    1.19    0.48
         function displayResults(elementId, headers, scores, type) {
             const zScoreLabel = type === 'Performance' ? 'Performance Z-Score' : 'Cost Z-Score';
 
-            let resultHTML = `<h3>${type} Results (Sorted by Z-Score):</h3><table>
+            let resultHTML = `<h3>${type} Results (Sorted by Z-Score):</h3>
+                              <p>Transformations Applied: ${transformationInfo}</p>
+                              <table>
                               <tr><th>${headers[0]}</th><th>${zScoreLabel}</th></tr>`;
             scores.forEach(item => {
                 resultHTML += `<tr>
@@ -324,7 +377,7 @@ Italy    1.19    0.48
             overallScores.sort((a, b) => b.overallZ - a.overallZ);
 
             const columnAHeader = performanceHeaders[0] || 'Entity';
-            let resultHTML = `<h3>Overall Performance Ranking:</h3><table>
+            let resultHTML = `<h3>Overall Performance Ranking:</h3><p>Transformations Applied: ${transformationInfo}</p><table>
                               <tr><th>${columnAHeader}</th><th>Performance Z-Score</th><th>Cost Z-Score</th><th>Overall Z-Score</th></tr>`;
             overallScores.forEach(item => {
                 resultHTML += `<tr>
