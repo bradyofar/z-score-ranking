@@ -200,6 +200,16 @@
             max-width: 800px;
             margin: 0 auto 20px auto;
         }
+
+        .distribution-plot {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background-color: #fff;
+            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+        }
     </style>
 </head>
 <body>
@@ -341,7 +351,60 @@ Italy    1.19    0.48
             return skewness;
         }
 
-        // Display skewness information below the buttons
+        // Plot distribution using a histogram
+        function plotDistribution(data, elementId) {
+            const ctx = document.getElementById(elementId).getContext('2d');
+
+            // Destroy previous instance if exists
+            if (window[elementId + 'Instance']) {
+                window[elementId + 'Instance'].destroy();
+            }
+
+            // Create a histogram by determining data bins
+            const min = Math.min(...data);
+            const max = Math.max(...data);
+            const binCount = 10; // Number of bins in the histogram
+            const binWidth = (max - min) / binCount;
+            const bins = new Array(binCount).fill(0);
+
+            data.forEach(value => {
+                const binIndex = Math.min(Math.floor((value - min) / binWidth), binCount - 1);
+                bins[binIndex]++;
+            });
+
+            window[elementId + 'Instance'] = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: bins.map((_, i) => `${(min + i * binWidth).toFixed(2)} - ${(min + (i + 1) * binWidth).toFixed(2)}`),
+                    datasets: [{
+                        label: 'Frequency',
+                        data: bins,
+                        backgroundColor: 'rgba(241, 98, 60, 0.6)',
+                        borderColor: '#f1623c',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Value Ranges'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Frequency'
+                            },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Display skewness information and plot data distribution if skewed
         function checkSkewness(metrics, headers, feedbackElementId) {
             const feedbackElement = document.getElementById(feedbackElementId);
             feedbackElement.innerHTML = ''; // Clear previous skewness messages
@@ -351,9 +414,19 @@ Italy    1.19    0.48
                 const skewness = calculateSkewness(columnData);
                 feedbackElement.insertAdjacentHTML('beforeend', `<p class="info">Skewness of ${headers[colIndex + 1]}: ${skewness.toFixed(2)}</p>`);
 
-                // Display warning if skewness is high and transformations are not applied
-                if (Math.abs(skewness) > 1 && !document.getElementById('applyTransformations').checked) {
-                    feedbackElement.insertAdjacentHTML('beforeend', `<p class="warning">Warning: The data for ${headers[colIndex + 1]} is highly skewed (skewness = ${skewness.toFixed(2)}). Consider applying transformations for better results.</p>`);
+                // Display warnings and plot distribution if skewness is high
+                if (Math.abs(skewness) > 1) {
+                    feedbackElement.insertAdjacentHTML(
+                        'beforeend',
+                        `<p class="warning">Notice: The data for ${headers[colIndex + 1]} is still skewed (skewness = ${skewness.toFixed(2)}). 
+                        Consider checking for outliers, applying alternative transformations (e.g., square root or reciprocal), or reviewing data entries for consistency.</p>
+                        <div class="distribution-plot">
+                            <canvas id="${feedbackElementId}_chart_${colIndex}"></canvas>
+                        </div>`
+                    );
+
+                    // Plot the data distribution for visualization
+                    setTimeout(() => plotDistribution(columnData, `${feedbackElementId}_chart_${colIndex}`), 0);
                 }
             });
         }
@@ -368,8 +441,8 @@ Italy    1.19    0.48
         // Calculate performance Z-scores
         function calculatePerformanceZScores() {
             let { headers, entities, metrics } = parseInputData('performanceData');
-            checkSkewness(metrics, headers, 'performanceFeedback'); // Check skewness and display feedback
             metrics = preprocessData(metrics); // Apply transformations if selected
+            checkSkewness(metrics, headers, 'performanceFeedback'); // Check skewness and display feedback
 
             if (!metrics.length || metrics.some(row => row.some(isNaN))) {
                 document.getElementById('performanceFeedback').innerHTML = '<p class="error">Please enter valid numbers for performance metrics.</p>';
@@ -394,8 +467,8 @@ Italy    1.19    0.48
         // Calculate cost Z-scores
         function calculateCostZScores() {
             let { headers, entities, metrics } = parseInputData('costData');
-            checkSkewness(metrics, headers, 'costFeedback'); // Check skewness and display feedback
             metrics = preprocessData(metrics); // Apply transformations if selected
+            checkSkewness(metrics, headers, 'costFeedback'); // Check skewness and display feedback
 
             if (!metrics.length || metrics.some(row => row.some(isNaN))) {
                 document.getElementById('costFeedback').innerHTML = '<p class="error">Please enter valid numbers for cost metrics.</p>';
