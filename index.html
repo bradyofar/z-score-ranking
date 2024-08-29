@@ -95,10 +95,21 @@
             margin-top: 20px;
         }
 
-        .error {
-            color: #d94d1a;
+        .error, .warning, .info {
             font-size: 14px;
             margin-top: 5px;
+        }
+
+        .error {
+            color: #d94d1a;
+        }
+
+        .warning {
+            color: #f1c40f;
+        }
+
+        .info {
+            color: #2c3e50;
         }
 
         table {
@@ -153,10 +164,9 @@
 <body>
     <div class="container">
         <h1>Z-Score Ranking Index</h1>
-<p class="intro-text">
-    The Z-Score Ranking Index standardises performance comparisons across entities using key metrics like engagement rates and cost efficiency by transforming each metric to a common scale based on its mean and standard deviation. <br><br> 
-Additionally, options to apply Logarithmic Transformation and Min-Max Normalization can further refine the analysis. Logarithmic Transformation is useful for handling skewed data by compressing extreme values, while Min-Max Normalization scales all values between 0 and 1, enhancing visual representation and interpretability. Together, these features ensure fair, consistent, and actionable insights into performance and cost efficiency. <br><br>
-</p>
+        <p class="intro-text">
+            The Z-Score Ranking Index standardises performance comparisons across entities using key metrics like engagement rates and cost efficiency. By measuring how each data point deviates from the average, this tool allows for fair and consistent comparisons, highlighting top performers and areas for improvement, and turning complex data into actionable insights.
+        </p>
 
         <div class="checkbox-container">
             <label><input type="checkbox" id="logTransform"> Apply Logarithmic Transformation</label>
@@ -213,7 +223,6 @@ Italy    1.19    0.48
         let performanceZScores = [];
         let costZScores = [];
         let overallScores = [];
-        let transformationInfo = '';
 
         function parseInputData(elementId) {
             const inputData = document.getElementById(elementId).innerText.trim();
@@ -254,12 +263,10 @@ Italy    1.19    0.48
         }
 
         function applyLogTransform(data) {
-            transformationInfo += 'Logarithmic Transformation, ';
             return data.map(row => row.map(value => Math.log(value)));
         }
 
         function applyMinMaxNormalization(data) {
-            transformationInfo += 'Min-Max Normalization, ';
             const minValues = data[0].map((_, colIndex) => Math.min(...data.map(row => row[colIndex])));
             const maxValues = data[0].map((_, colIndex) => Math.max(...data.map(row => row[colIndex])));
             return data.map(row => row.map((value, colIndex) => (value - minValues[colIndex]) / (maxValues[colIndex] - minValues[colIndex])));
@@ -269,22 +276,50 @@ Italy    1.19    0.48
             const logTransform = document.getElementById('logTransform').checked;
             const minMaxNormalize = document.getElementById('minMaxNormalize').checked;
 
-            transformationInfo = '';
-
             if (logTransform) {
                 data = applyLogTransform(data);
             }
             if (minMaxNormalize) {
                 data = applyMinMaxNormalization(data);
             }
-
-            if (transformationInfo === '') {
-                transformationInfo = 'No transformations applied';
-            } else {
-                transformationInfo = transformationInfo.slice(0, -2); // Remove the trailing comma and space
-            }
-
             return data;
+        }
+
+        function calculateSkewness(data) {
+            const mean = data.reduce((a, b) => a + b, 0) / data.length;
+            const std = Math.sqrt(data.map(x => Math.pow(x - mean, 2)).reduce((a, b) => a + b) / data.length);
+            const skewness = (data.map(x => Math.pow((x - mean) / std, 3)).reduce((a, b) => a + b) / data.length);
+            return skewness;
+        }
+
+        function checkSkewness(metrics, headers, elementId) {
+            const logTransform = document.getElementById('logTransform').checked;
+            const minMaxNormalize = document.getElementById('minMaxNormalize').checked;
+
+            // Always display skewness info regardless of transformation settings
+            headers.slice(1).forEach((_, colIndex) => {
+                const columnData = metrics.map(row => row[colIndex]);
+                const skewness = calculateSkewness(columnData);
+                // Display skewness information for each metric
+                document.getElementById(elementId).insertAdjacentHTML('beforeend', `<p class="info">Skewness of ${headers[colIndex + 1]}: ${skewness.toFixed(2)}</p>`);
+            });
+
+            // Only trigger warnings if neither transformation is applied
+            if (!logTransform && !minMaxNormalize) {
+                let warningMessage = "";
+                headers.slice(1).forEach((_, colIndex) => {
+                    const columnData = metrics.map(row => row[colIndex]);
+                    const skewness = calculateSkewness(columnData);
+                    if (Math.abs(skewness) > 1) {
+                        warningMessage += `<p class="warning">Warning: The data for ${headers[colIndex + 1]} is highly skewed (skewness = ${skewness.toFixed(2)}). Consider applying logarithmic transformation and min-max normalization for more accurate Z-score calculations.</p>`;
+                    }
+                });
+
+                // Display warning message if skewness is detected
+                if (warningMessage) {
+                    document.getElementById(elementId).insertAdjacentHTML('beforeend', warningMessage);
+                }
+            }
         }
 
         function calculateMeanAndStd(arr) {
@@ -295,6 +330,8 @@ Italy    1.19    0.48
 
         function calculatePerformanceZScores() {
             let { headers, entities, metrics } = parseInputData('performanceData');
+            document.getElementById('performanceResults').innerHTML = ''; // Clear previous results
+            checkSkewness(metrics, headers, 'performanceResults'); // Ensure skewness is checked and displayed
             metrics = preprocessData(metrics);
             if (!metrics.length || metrics.some(row => row.some(isNaN))) {
                 document.getElementById('performanceResults').innerHTML = '<p class="error">Please enter valid numbers for performance metrics.</p>';
@@ -318,6 +355,8 @@ Italy    1.19    0.48
 
         function calculateCostZScores() {
             let { headers, entities, metrics } = parseInputData('costData');
+            document.getElementById('costResults').innerHTML = ''; // Clear previous results
+            checkSkewness(metrics, headers, 'costResults'); // Ensure skewness is checked and displayed
             metrics = preprocessData(metrics);
             if (!metrics.length || metrics.some(row => row.some(isNaN))) {
                 document.getElementById('costResults').innerHTML = '<p class="error">Please enter valid numbers for cost metrics.</p>';
@@ -342,9 +381,7 @@ Italy    1.19    0.48
         function displayResults(elementId, headers, scores, type) {
             const zScoreLabel = type === 'Performance' ? 'Performance Z-Score' : 'Cost Z-Score';
 
-            let resultHTML = `<h3>${type} Results (Sorted by Z-Score):</h3>
-                              <p>Transformations Applied: ${transformationInfo}</p>
-                              <table>
+            let resultHTML = `<h3>${type} Results (Sorted by Z-Score):</h3><table>
                               <tr><th>${headers[0]}</th><th>${zScoreLabel}</th></tr>`;
             scores.forEach(item => {
                 resultHTML += `<tr>
@@ -353,7 +390,7 @@ Italy    1.19    0.48
                                </tr>`;
             });
             resultHTML += '</table>';
-            document.getElementById(elementId).innerHTML = resultHTML;
+            document.getElementById(elementId).innerHTML += resultHTML;
         }
 
         function calculateOverallRanking() {
@@ -377,7 +414,7 @@ Italy    1.19    0.48
             overallScores.sort((a, b) => b.overallZ - a.overallZ);
 
             const columnAHeader = performanceHeaders[0] || 'Entity';
-            let resultHTML = `<h3>Overall Performance Ranking:</h3><p>Transformations Applied: ${transformationInfo}</p><table>
+            let resultHTML = `<h3>Overall Performance Ranking:</h3><table>
                               <tr><th>${columnAHeader}</th><th>Performance Z-Score</th><th>Cost Z-Score</th><th>Overall Z-Score</th></tr>`;
             overallScores.forEach(item => {
                 resultHTML += `<tr>
