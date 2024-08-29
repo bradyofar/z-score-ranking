@@ -19,7 +19,8 @@
             margin: 40px auto;
             padding: 20px;
             background-color: #fff;
-            border-radius: 4px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
 
         h1 {
@@ -34,7 +35,11 @@
             flex-direction: column;
             align-items: center;
             margin-bottom: 30px;
-            text-align: center;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
         }
 
         .instruction-text {
@@ -60,7 +65,7 @@
             background-color: #fafafa;
             caret-color: black;
             outline: none;
-            margin: 0 auto;
+            margin: 0 auto 15px auto;
         }
 
         .spreadsheet-input::placeholder {
@@ -71,7 +76,8 @@
 
         .button-container {
             display: flex;
-            justify-content: center;
+            flex-direction: column;
+            align-items: center;
             margin-top: 15px;
         }
 
@@ -84,11 +90,12 @@
             cursor: pointer;
             font-size: 16px;
             margin: 5px;
-            transition: background-color 0.3s ease;
+            transition: background-color 0.3s ease, transform 0.2s ease;
         }
 
         button:hover {
             background-color: #d94d1a;
+            transform: translateY(-2px);
         }
 
         .results {
@@ -143,6 +150,11 @@
             width: 100%;
             max-width: 600px;
             margin: 40px auto;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background-color: #fff;
+            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
         }
 
         .chart-container canvas {
@@ -152,12 +164,41 @@
 
         .checkbox-container {
             display: flex;
-            justify-content: center;
-            margin-bottom: 10px;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
         }
 
-        .checkbox-container label {
-            margin-right: 20px;
+        .checkbox-container h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+            color: #f1623c;
+            text-align: center;
+            width: 100%;
+        }
+
+        .button-container h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+            color: #f1623c;
+            text-align: center;
+            width: 100%;
+        }
+
+        .input-section h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+            color: #f1623c;
+        }
+
+        p {
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto 20px auto;
         }
     </style>
 </head>
@@ -165,16 +206,22 @@
     <div class="container">
         <h1>Z-Score Ranking Index</h1>
         <p class="intro-text">
-            The Z-Score Ranking Index standardises performance comparisons across entities using key metrics like engagement rates and cost efficiency. By measuring how each data point deviates from the average, this tool allows for fair and consistent comparisons, highlighting top performers and areas for improvement, and turning complex data into actionable insights.
+            Welcome! This tool helps you compare data fairly by calculating Z-scores for your performance and cost metrics. Let’s walk through the steps together!
         </p>
 
         <div class="checkbox-container">
-            <label><input type="checkbox" id="logTransform"> Apply Logarithmic Transformation</label>
-            <label><input type="checkbox" id="minMaxNormalize"> Apply Min-Max Normalization</label>
+            <h3>Step 1: Choose Data Transformations</h3>
+            <p>
+                <label>
+                    <input type="checkbox" id="applyTransformations">
+                    Apply Data Transformations (log transformation followed by min-max normalization)
+                </label>
+            </p>
         </div>
 
         <div class="input-section">
-            <span class="instruction-text">Paste your performance data below (including headers e.g., Engagement rate, Click-through rates):</span>
+            <h3>Step 2: Input Your Performance Data</h3>
+            <span class="instruction-text">Paste your performance data below. Include headers (e.g., Engagement rate, Click-through rates).</span>
             <div class="spreadsheet-input" contenteditable="true" id="performanceData" 
                  placeholder="Country [TAB] CTR [TAB] E/R&#10;France [TAB] 35.74% [TAB] 46.91%&#10;Germany [TAB] 15.37% [TAB] 48.66%&#10;Italy [TAB] 27.41% [TAB] 19.81%">
 Country    CTR    E/R
@@ -184,11 +231,15 @@ Italy    0.41%    19.81%
             </div>
             <div class="button-container">
                 <button onclick="calculatePerformanceZScores()">Calculate Performance Z-Scores</button>
+                <div id="performanceFeedback" class="results"></div>
             </div>
         </div>
 
+        <div id="performanceResults" class="results"></div>
+
         <div class="input-section">
-            <span class="instruction-text">Paste your cost data below (including headers e.g., CPM, CPC, CPE etc.):</span>
+            <h3>Step 3: Input Your Cost Data</h3>
+            <span class="instruction-text">Paste your cost data below. Include headers (e.g., CPM, CPC, CPE).</span>
             <div class="spreadsheet-input" contenteditable="true" id="costData" 
                  placeholder="Country [TAB] CPM [TAB] CPC&#10;France [TAB] 1.06 [TAB] 0.45&#10;Germany [TAB] 1.13 [TAB] 0.52&#10;Italy [TAB] 1.19 [TAB] 0.48">
 Country    CPM    CPC
@@ -198,15 +249,18 @@ Italy    1.19    0.48
             </div>
             <div class="button-container">
                 <button onclick="calculateCostZScores()">Calculate Cost Z-Scores</button>
+                <div id="costFeedback" class="results"></div>
             </div>
         </div>
 
+        <div id="costResults" class="results"></div>
+
         <div class="button-container">
+            <h3>Step 4: Get Your Overall Ranking</h3>
+            <p>Click the button below to see the combined performance and cost rankings!</p>
             <button onclick="calculateOverallRanking()">Calculate Overall Ranking</button>
         </div>
 
-        <div id="performanceResults" class="results"></div>
-        <div id="costResults" class="results"></div>
         <div id="overallResults" class="results"></div>
 
         <div class="chart-container">
@@ -262,29 +316,24 @@ Italy    1.19    0.48
             return { headers, entities: data.map(row => row.entity), metrics: data.map(row => row.metrics) };
         }
 
-        function applyLogTransform(data) {
-            return data.map(row => row.map(value => Math.log(value)));
-        }
-
-        function applyMinMaxNormalization(data) {
-            const minValues = data[0].map((_, colIndex) => Math.min(...data.map(row => row[colIndex])));
-            const maxValues = data[0].map((_, colIndex) => Math.max(...data.map(row => row[colIndex])));
-            return data.map(row => row.map((value, colIndex) => (value - minValues[colIndex]) / (maxValues[colIndex] - minValues[colIndex])));
-        }
-
+        // Apply log transformation followed by min-max normalization if the checkbox is selected
         function preprocessData(data) {
-            const logTransform = document.getElementById('logTransform').checked;
-            const minMaxNormalize = document.getElementById('minMaxNormalize').checked;
+            const applyTransformations = document.getElementById('applyTransformations').checked;
 
-            if (logTransform) {
-                data = applyLogTransform(data);
+            if (applyTransformations) {
+                // Apply log transformation first
+                data = data.map(row => row.map(value => Math.log(value)));
+
+                // Then apply min-max normalization
+                const minValues = data[0].map((_, colIndex) => Math.min(...data.map(row => row[colIndex])));
+                const maxValues = data[0].map((_, colIndex) => Math.max(...data.map(row => row[colIndex])));
+                data = data.map(row => row.map((value, colIndex) => (value - minValues[colIndex]) / (maxValues[colIndex] - minValues[colIndex])));
             }
-            if (minMaxNormalize) {
-                data = applyMinMaxNormalization(data);
-            }
+
             return data;
         }
 
+        // Calculate skewness to determine data distribution
         function calculateSkewness(data) {
             const mean = data.reduce((a, b) => a + b, 0) / data.length;
             const std = Math.sqrt(data.map(x => Math.pow(x - mean, 2)).reduce((a, b) => a + b) / data.length);
@@ -292,49 +341,38 @@ Italy    1.19    0.48
             return skewness;
         }
 
-        function checkSkewness(metrics, headers, elementId) {
-            const logTransform = document.getElementById('logTransform').checked;
-            const minMaxNormalize = document.getElementById('minMaxNormalize').checked;
+        // Display skewness information below the buttons
+        function checkSkewness(metrics, headers, feedbackElementId) {
+            const feedbackElement = document.getElementById(feedbackElementId);
+            feedbackElement.innerHTML = ''; // Clear previous skewness messages
 
-            // Always display skewness info regardless of transformation settings
             headers.slice(1).forEach((_, colIndex) => {
                 const columnData = metrics.map(row => row[colIndex]);
                 const skewness = calculateSkewness(columnData);
-                // Display skewness information for each metric
-                document.getElementById(elementId).insertAdjacentHTML('beforeend', `<p class="info">Skewness of ${headers[colIndex + 1]}: ${skewness.toFixed(2)}</p>`);
-            });
+                feedbackElement.insertAdjacentHTML('beforeend', `<p class="info">Skewness of ${headers[colIndex + 1]}: ${skewness.toFixed(2)}</p>`);
 
-            // Only trigger warnings if neither transformation is applied
-            if (!logTransform && !minMaxNormalize) {
-                let warningMessage = "";
-                headers.slice(1).forEach((_, colIndex) => {
-                    const columnData = metrics.map(row => row[colIndex]);
-                    const skewness = calculateSkewness(columnData);
-                    if (Math.abs(skewness) > 1) {
-                        warningMessage += `<p class="warning">Warning: The data for ${headers[colIndex + 1]} is highly skewed (skewness = ${skewness.toFixed(2)}). Consider applying logarithmic transformation and min-max normalization for more accurate Z-score calculations.</p>`;
-                    }
-                });
-
-                // Display warning message if skewness is detected
-                if (warningMessage) {
-                    document.getElementById(elementId).insertAdjacentHTML('beforeend', warningMessage);
+                // Display warning if skewness is high and transformations are not applied
+                if (Math.abs(skewness) > 1 && !document.getElementById('applyTransformations').checked) {
+                    feedbackElement.insertAdjacentHTML('beforeend', `<p class="warning">Warning: The data for ${headers[colIndex + 1]} is highly skewed (skewness = ${skewness.toFixed(2)}). Consider applying transformations for better results.</p>`);
                 }
-            }
+            });
         }
 
+        // Calculate mean and standard deviation for Z-score calculation
         function calculateMeanAndStd(arr) {
             const mean = arr.reduce((a, b) => a + b, 0) / arr.length;
             const std = Math.sqrt(arr.map(x => Math.pow(x - mean, 2)).reduce((a, b) => a + b) / arr.length);
             return { mean, std };
         }
 
+        // Calculate performance Z-scores
         function calculatePerformanceZScores() {
             let { headers, entities, metrics } = parseInputData('performanceData');
-            document.getElementById('performanceResults').innerHTML = ''; // Clear previous results
-            checkSkewness(metrics, headers, 'performanceResults'); // Ensure skewness is checked and displayed
-            metrics = preprocessData(metrics);
+            checkSkewness(metrics, headers, 'performanceFeedback'); // Check skewness and display feedback
+            metrics = preprocessData(metrics); // Apply transformations if selected
+
             if (!metrics.length || metrics.some(row => row.some(isNaN))) {
-                document.getElementById('performanceResults').innerHTML = '<p class="error">Please enter valid numbers for performance metrics.</p>';
+                document.getElementById('performanceFeedback').innerHTML = '<p class="error">Please enter valid numbers for performance metrics.</p>';
                 return;
             }
 
@@ -353,20 +391,21 @@ Italy    1.19    0.48
             displayResults('performanceResults', headers, performanceZScores, 'Performance');
         }
 
+        // Calculate cost Z-scores
         function calculateCostZScores() {
             let { headers, entities, metrics } = parseInputData('costData');
-            document.getElementById('costResults').innerHTML = ''; // Clear previous results
-            checkSkewness(metrics, headers, 'costResults'); // Ensure skewness is checked and displayed
-            metrics = preprocessData(metrics);
+            checkSkewness(metrics, headers, 'costFeedback'); // Check skewness and display feedback
+            metrics = preprocessData(metrics); // Apply transformations if selected
+
             if (!metrics.length || metrics.some(row => row.some(isNaN))) {
-                document.getElementById('costResults').innerHTML = '<p class="error">Please enter valid numbers for cost metrics.</p>';
+                document.getElementById('costFeedback').innerHTML = '<p class="error">Please enter valid numbers for cost metrics.</p>';
                 return;
             }
 
             const zScoresByMetric = headers.slice(1).map((_, colIndex) => {
                 const columnData = metrics.map(row => row[colIndex]);
                 const stats = calculateMeanAndStd(columnData);
-                return columnData.map(value => -((value - stats.mean) / stats.std).toFixed(6));
+                return columnData.map(value => -((value - stats.mean) / stats.std).toFixed(6)); // Inverting for cost metrics
             });
 
             costZScores = entities.map((entity, rowIndex) => {
@@ -378,6 +417,7 @@ Italy    1.19    0.48
             displayResults('costResults', headers, costZScores, 'Cost');
         }
 
+        // Display results in a table format
         function displayResults(elementId, headers, scores, type) {
             const zScoreLabel = type === 'Performance' ? 'Performance Z-Score' : 'Cost Z-Score';
 
@@ -390,9 +430,10 @@ Italy    1.19    0.48
                                </tr>`;
             });
             resultHTML += '</table>';
-            document.getElementById(elementId).innerHTML += resultHTML;
+            document.getElementById(elementId).innerHTML = resultHTML;
         }
 
+        // Calculate overall ranking based on performance and cost Z-scores
         function calculateOverallRanking() {
             const { headers: performanceHeaders } = parseInputData('performanceData');
 
@@ -429,6 +470,7 @@ Italy    1.19    0.48
             renderOverallChart();
         }
 
+        // Render the overall performance chart using Chart.js
         function renderOverallChart() {
             const ctx = document.getElementById('overallChart').getContext('2d');
             const labels = overallScores.map(item => item.entity);
