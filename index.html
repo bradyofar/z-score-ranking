@@ -223,6 +223,47 @@
         .color-picker label {
             margin-right: 5px;
         }
+
+        .hex-to-rgb {
+            text-align: center;
+            margin-top: 20px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .hex-to-rgb input {
+            padding: 8px;
+            margin-top: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 70%;
+        }
+
+        .hex-to-rgb button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+            border: none;
+            border-radius: 4px;
+            background-color: #f1623c;
+            color: white;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        .hex-to-rgb button:hover {
+            background-color: #d94d1a;
+        }
+
+        .hex-to-rgb .output {
+            margin-top: 15px;
+            font-size: 18px;
+            color: #333;
+        }
     </style>
 </head>
 <body>
@@ -296,6 +337,14 @@ Italy    1.19    0.48
                 <label for="axesColor">Axes and Title Color:</label>
                 <input type="color" id="axesColor" value="#333333" onchange="updateChartColor()">
             </div>
+        </div>
+
+        <!-- Hex to RGB Converter Section -->
+        <div class="hex-to-rgb">
+            <h3>Hex to RGB Converter</h3>
+            <input type="text" id="hexInput" placeholder="Enter Hex Code (e.g., #FF5733)">
+            <button onclick="convertHexToRGB()">Convert</button>
+            <div class="output" id="rgbOutput"></div>
         </div>
 
         <div class="button-container">
@@ -603,6 +652,34 @@ Italy    1.19    0.48
 
             // Apply the selected background color to the canvas
             ctx.canvas.style.backgroundColor = backgroundColor;
+        }
+
+        function convertHexToRGB() {
+            const hex = document.getElementById('hexInput').value.trim();
+            const rgbOutput = document.getElementById('rgbOutput');
+
+            // Regular expression to validate hex code format
+            const hexPattern = /^#?([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$/;
+
+            if (!hexPattern.test(hex)) {
+                rgbOutput.textContent = "Invalid hex code!";
+                return;
+            }
+
+            // Remove # if present
+            const cleanedHex = hex.startsWith('#') ? hex.slice(1) : hex;
+
+            // Convert shorthand hex to full hex
+            const fullHex = cleanedHex.length === 3 
+                ? cleanedHex.split('').map(char => char + char).join('') 
+                : cleanedHex;
+
+            // Convert hex to RGB values
+            const r = parseInt(fullHex.slice(0, 2), 16);
+            const g = parseInt(fullHex.slice(2, 4), 16);
+            const b = parseInt(fullHex.slice(4, 6), 16);
+
+            rgbOutput.textContent = `RGB: (${r}, ${g}, ${b})`;
         }
     </script>
 </body>
