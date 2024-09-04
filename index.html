@@ -265,6 +265,8 @@
             color: #333;
         }
     </style>
+    <!-- Add html2canvas script for capturing the chart -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -359,6 +361,11 @@ Italy    1.19    0.48
         <div class="chart-container">
             <h3 id="chartTitle" style="text-align: center; margin-bottom: 10px;"></h3>
             <canvas id="overallChart" style="max-height: 400px;"></canvas>
+        </div>
+
+        <!-- Add this button to download the chart as a JPEG -->
+        <div class="button-container">
+            <button onclick="downloadChartAsJPEG()">Download Chart as JPEG</button>
         </div>
 
     </div>
@@ -652,6 +659,24 @@ Italy    1.19    0.48
 
             // Apply the selected background color to the canvas
             ctx.canvas.style.backgroundColor = backgroundColor;
+        }
+
+        // Function to download the chart as a JPEG
+        function downloadChartAsJPEG() {
+            const chartContainer = document.getElementById('overallChart');
+
+            // Use html2canvas to capture the chart
+            html2canvas(chartContainer, { backgroundColor: null }).then((canvas) => {
+                const imgData = canvas.toDataURL('image/jpeg', 1.0);
+
+                // Create a link to download the image
+                const link = document.createElement('a');
+                link.href = imgData;
+                link.download = 'overall_chart.jpeg';
+                link.click();
+            }).catch((error) => {
+                console.error('Error generating JPEG:', error);
+            });
         }
 
         function convertHexToRGB() {
