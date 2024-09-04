@@ -201,13 +201,18 @@
             width: 50px;
             padding: 5px;
         }
+
+        .color-picker {
+            margin: 10px 0;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Z-Score Ranking Index</h1>
         <p class="intro-text">
-            Welcome! This tool helps you compare data fairly by calculating Z-scores for your performance and cost metrics with customisable weighting. Let’s walk through the steps together!
+            Welcome! This tool helps you compare data fairly by calculating Z-scores for your performance and cost metrics with customizable weighting. Let’s walk through the steps together!
         </p>
 
         <div class="input-section">
@@ -261,6 +266,11 @@ Italy    1.19    0.48
             <button onclick="calculateOverallRanking()">Calculate Overall Ranking</button>
         </div>
 
+        <div class="color-picker">
+            <label for="barColor">Choose Bar Color: </label>
+            <input type="color" id="barColor" value="#f1623c" onchange="updateChartColor()">
+        </div>
+
         <div id="overallResults" class="results"></div>
 
         <div class="chart-container">
@@ -279,6 +289,7 @@ Italy    1.19    0.48
         let overallScores = [];
         let performanceWeights = [];
         let costWeights = [];
+        let chartColor = '#f1623c'; // Default chart color
 
         function parseInputData(elementId) {
             const inputData = document.getElementById(elementId).innerText.trim();
@@ -346,6 +357,11 @@ Italy    1.19    0.48
         function updateWeights(containerId, index, value) {
             const weights = containerId === 'performanceWeightsContainer' ? performanceWeights : costWeights;
             weights[index] = parseFloat(value) || 0; // Update the weight value, fallback to 0 if invalid
+        }
+
+        function updateChartColor() {
+            chartColor = document.getElementById('barColor').value;
+            renderOverallChart(); // Re-render the chart with the new color
         }
 
         // Calculate mean and standard deviation for Z-score calculation
@@ -474,8 +490,8 @@ Italy    1.19    0.48
                     datasets: [{
                         label: 'Overall Z-Score',
                         data: data,
-                        backgroundColor: '#f1623c',
-                        borderColor: '#f1623c',
+                        backgroundColor: chartColor, // Set to the selected color
+                        borderColor: chartColor,
                         borderWidth: 1
                     }]
                 },
