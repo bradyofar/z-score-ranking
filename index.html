@@ -212,7 +212,7 @@
     <div class="container">
         <h1>Z-Score Ranking Index</h1>
         <p class="intro-text">
-            Welcome! This tool helps you compare data fairly by calculating Z-scores for your performance and cost metrics with customizable weighting. Let’s walk through the steps together!
+            Welcome! This tool helps you compare data fairly by calculating Z-scores for your performance and cost metrics with customisable weighting. Let’s walk through the steps together!
         </p>
 
         <div class="input-section">
@@ -436,28 +436,48 @@ Italy    1.19    0.48
             document.getElementById(elementId).innerHTML = resultHTML;
         }
 
-        // Calculate overall ranking based on performance and cost Z-scores
+        // Calculate overall ranking based on performance and/or cost Z-scores
         function calculateOverallRanking() {
-            if (performanceZScores.length === 0 || costZScores.length === 0) {
-                document.getElementById('overallResults').innerHTML = '<p class="error">Please calculate both performance and cost Z-scores first.</p>';
+            let scoresToUse = [];
+
+            if (performanceZScores.length > 0 && costZScores.length > 0) {
+                // Combine both performance and cost Z-scores
+                overallScores = performanceZScores.map(perf => {
+                    const cost = costZScores.find(c => c.entity === perf.entity);
+                    return {
+                        entity: perf.entity,
+                        performanceZ: parseFloat(perf.totalZScore),
+                        costZ: parseFloat(cost ? cost.totalZScore : 0),
+                        overallZ: parseFloat(perf.totalZScore) + parseFloat(cost ? cost.totalZScore : 0)
+                    };
+                });
+                scoresToUse = overallScores;
+            } else if (performanceZScores.length > 0) {
+                // Use only performance Z-scores
+                scoresToUse = performanceZScores.map(perf => ({
+                    entity: perf.entity,
+                    performanceZ: parseFloat(perf.totalZScore),
+                    costZ: 0,
+                    overallZ: parseFloat(perf.totalZScore)
+                }));
+            } else if (costZScores.length > 0) {
+                // Use only cost Z-scores
+                scoresToUse = costZScores.map(cost => ({
+                    entity: cost.entity,
+                    performanceZ: 0,
+                    costZ: parseFloat(cost.totalZScore),
+                    overallZ: parseFloat(cost.totalZScore)
+                }));
+            } else {
+                document.getElementById('overallResults').innerHTML = '<p class="error">Please calculate performance or cost Z-scores first.</p>';
                 return;
             }
 
-            overallScores = performanceZScores.map(perf => {
-                const cost = costZScores.find(c => c.entity === perf.entity);
-                return {
-                    entity: perf.entity,
-                    performanceZ: parseFloat(perf.totalZScore),
-                    costZ: parseFloat(cost ? cost.totalZScore : 0),
-                    overallZ: parseFloat(perf.totalZScore) + parseFloat(cost ? cost.totalZScore : 0)
-                };
-            });
-
-            overallScores.sort((a, b) => b.overallZ - a.overallZ);
+            scoresToUse.sort((a, b) => b.overallZ - a.overallZ);
 
             let resultHTML = `<h3>Overall Performance Ranking:</h3><table>
                               <tr><th>Entity</th><th>Performance Z-Score</th><th>Cost Z-Score</th><th>Overall Z-Score</th></tr>`;
-            overallScores.forEach(item => {
+            scoresToUse.forEach(item => {
                 resultHTML += `<tr>
                                 <td>${item.entity}</td>
                                 <td>${item.performanceZ.toFixed(6)}</td>
@@ -467,14 +487,14 @@ Italy    1.19    0.48
             });
             resultHTML += '</table>';
             document.getElementById('overallResults').innerHTML = resultHTML;
-            renderOverallChart();
+            renderOverallChart(scoresToUse);
         }
 
         // Render the overall performance chart using Chart.js
-        function renderOverallChart() {
+        function renderOverallChart(scores) {
             const ctx = document.getElementById('overallChart').getContext('2d');
-            const labels = overallScores.map(item => item.entity);
-            const data = overallScores.map(item => item.overallZ);
+            const labels = scores.map(item => item.entity);
+            const data = scores.map(item => item.overallZ);
 
             const chartTitle = 'Aggregated Z-Value Performance Index';
             document.getElementById('chartTitle').innerText = chartTitle;
