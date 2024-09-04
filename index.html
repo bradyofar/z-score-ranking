@@ -229,7 +229,7 @@
     <div class="container">
         <h1>Z-Score Ranking Index</h1>
         <p class="intro-text">
-            Welcome! This tool helps you compare data fairly by calculating Z-scores for your performance and cost metrics with customizable weighting. Let’s walk through the steps together!
+            Welcome! This tool helps you compare data fairly by calculating Z-scores for your performance and cost metrics with customizable weighting.
         </p>
 
         <div class="input-section">
@@ -296,6 +296,13 @@ Italy    1.19    0.48
                 <label for="axesColor">Axes and Title Color:</label>
                 <input type="color" id="axesColor" value="#333333" onchange="updateChartColor()">
             </div>
+        </div>
+
+        <div class="button-container">
+            <label>
+                <input type="checkbox" id="removeNegativesCheckbox" onchange="calculateOverallRanking()">
+                Remove Negative Values
+            </label>
         </div>
 
         <div id="overallResults" class="results"></div>
@@ -502,6 +509,19 @@ Italy    1.19    0.48
 
             scoresToUse.sort((a, b) => b.overallZ - a.overallZ);
 
+            // Adjust values if "Remove Negative Values" is checked
+            const removeNegatives = document.getElementById('removeNegativesCheckbox').checked;
+            if (removeNegatives) {
+                const minOverallZ = Math.min(...scoresToUse.map(score => score.overallZ));
+                if (minOverallZ < 0) {
+                    const adjustment = Math.ceil(Math.abs(minOverallZ));
+                    scoresToUse = scoresToUse.map(score => ({
+                        ...score,
+                        overallZ: score.overallZ + adjustment
+                    }));
+                }
+            }
+
             let resultHTML = `<h3>Overall Performance Ranking:</h3><table>
                               <tr><th>Entity</th><th>Performance Z-Score</th><th>Cost Z-Score</th><th>Overall Z-Score</th></tr>`;
             scoresToUse.forEach(item => {
@@ -547,7 +567,7 @@ Italy    1.19    0.48
                         x: {
                             beginAtZero: true,
                             grid: {
-                                display: true // Removed horizontal grid lines
+                                display: true // 
                             },
                             ticks: {
                                 color: axesColor // Apply color to x-axis ticks
@@ -568,7 +588,7 @@ Italy    1.19    0.48
                         },
                         title: {
                             display: true,
-                            text: 'Aggregated Z-Value Performance Index',
+                            text: 'Aggregated Performance Index',
                             color: axesColor, // Apply color to title
                             font: {
                                 size: 16
