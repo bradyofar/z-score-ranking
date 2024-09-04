@@ -177,13 +177,37 @@
             background-color: #f9f9f9;
             box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
         }
+
+        .weights-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .weight-input {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .weight-input label {
+            margin-right: 5px;
+            white-space: nowrap;
+        }
+
+        .weight-input input {
+            width: 50px;
+            padding: 5px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Z-Score Ranking Index</h1>
         <p class="intro-text">
-            Welcome! This tool helps you compare data fairly by calculating Z-scores for your performance and cost metrics. Let’s walk through the steps together!
+            Welcome! This tool helps you compare data fairly by calculating Z-scores for your performance and cost metrics with customisable weighting. Let’s walk through the steps together!
         </p>
 
         <div class="input-section">
@@ -196,6 +220,10 @@ France    0.74%    46.91%
 Germany    0.37%    48.66%
 Italy    0.41%    19.81%
             </div>
+            <div class="button-container">
+                <button onclick="setupPerformanceWeights()">Setup Performance Weights</button>
+            </div>
+            <div class="weights-container" id="performanceWeightsContainer"></div>
             <div class="button-container">
                 <button onclick="calculatePerformanceZScores()">Calculate Performance Z-Scores</button>
                 <div id="performanceFeedback" class="results"></div>
@@ -212,6 +240,10 @@ France    1.06    0.45
 Germany    1.13    0.52
 Italy    1.19    0.48
             </div>
+            <div class="button-container">
+                <button onclick="setupCostWeights()">Setup Cost Weights</button>
+            </div>
+            <div class="weights-container" id="costWeightsContainer"></div>
             <div class="button-container">
                 <button onclick="calculateCostZScores()">Calculate Cost Z-Scores</button>
                 <div id="costFeedback" class="results"></div>
@@ -245,6 +277,8 @@ Italy    1.19    0.48
         let performanceZScores = [];
         let costZScores = [];
         let overallScores = [];
+        let performanceWeights = [];
+        let costWeights = [];
 
         function parseInputData(elementId) {
             const inputData = document.getElementById(elementId).innerText.trim();
@@ -284,6 +318,36 @@ Italy    1.19    0.48
             return { headers, entities: data.map(row => row.entity), metrics: data.map(row => row.metrics) };
         }
 
+        function setupPerformanceWeights() {
+            const { headers } = parseInputData('performanceData');
+            generateWeightInputs(headers, 'performanceWeightsContainer', performanceWeights);
+        }
+
+        function setupCostWeights() {
+            const { headers } = parseInputData('costData');
+            generateWeightInputs(headers, 'costWeightsContainer', costWeights);
+        }
+
+        function generateWeightInputs(headers, containerId, weightArray) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            headers.slice(1).forEach((header, index) => {
+                const weightInput = document.createElement('div');
+                weightInput.className = 'weight-input';
+                weightInput.innerHTML = `
+                    <label for="${containerId}_weight_${index}">${header} Weight:</label>
+                    <input type="number" id="${containerId}_weight_${index}" value="1" min="0" step="0.1" oninput="updateWeights('${containerId}', ${index}, this.value)">
+                `;
+                container.appendChild(weightInput);
+                weightArray[index] = 1; // Set default weight to 1
+            });
+        }
+
+        function updateWeights(containerId, index, value) {
+            const weights = containerId === 'performanceWeightsContainer' ? performanceWeights : costWeights;
+            weights[index] = parseFloat(value) || 0; // Update the weight value, fallback to 0 if invalid
+        }
+
         // Calculate mean and standard deviation for Z-score calculation
         function calculateMeanAndStd(arr) {
             const mean = arr.reduce((a, b) => a + b, 0) / arr.length;
@@ -291,20 +355,26 @@ Italy    1.19    0.48
             return { mean, std };
         }
 
+        // Calculate weighted Z-scores
+        function calculateWeightedZScores(metrics, weights, shouldInverse = false) {
+            return metrics[0].map((_, colIndex) => {
+                const columnData = metrics.map(row => row[colIndex]);
+                const stats = calculateMeanAndStd(columnData);
+                // Invert if it's a cost metric
+                const zScores = columnData.map(value => ((value - stats.mean) / stats.std) * weights[colIndex]);
+                return shouldInverse ? zScores.map(score => score * -1) : zScores;
+            });
+        }
+
         // Calculate performance Z-scores
         function calculatePerformanceZScores() {
             let { headers, entities, metrics } = parseInputData('performanceData');
-
             if (!metrics.length || metrics.some(row => row.some(isNaN))) {
                 document.getElementById('performanceFeedback').innerHTML = '<p class="error">Please enter valid numbers for performance metrics.</p>';
                 return;
             }
 
-            const zScoresByMetric = headers.slice(1).map((_, colIndex) => {
-                const columnData = metrics.map(row => row[colIndex]);
-                const stats = calculateMeanAndStd(columnData);
-                return columnData.map(value => ((value - stats.mean) / stats.std).toFixed(6));
-            });
+            const zScoresByMetric = calculateWeightedZScores(metrics, performanceWeights);
 
             performanceZScores = entities.map((entity, rowIndex) => {
                 const totalZScore = zScoresByMetric.reduce((sum, colZScores) => sum + parseFloat(colZScores[rowIndex]), 0);
@@ -315,20 +385,15 @@ Italy    1.19    0.48
             displayResults('performanceResults', headers, performanceZScores, 'Performance');
         }
 
-        // Calculate cost Z-scores
+        // Calculate cost Z-scores (always inverted)
         function calculateCostZScores() {
             let { headers, entities, metrics } = parseInputData('costData');
-
             if (!metrics.length || metrics.some(row => row.some(isNaN))) {
                 document.getElementById('costFeedback').innerHTML = '<p class="error">Please enter valid numbers for cost metrics.</p>';
                 return;
             }
 
-            const zScoresByMetric = headers.slice(1).map((_, colIndex) => {
-                const columnData = metrics.map(row => row[colIndex]);
-                const stats = calculateMeanAndStd(columnData);
-                return columnData.map(value => -((value - stats.mean) / stats.std).toFixed(6)); // Inverting for cost metrics
-            });
+            const zScoresByMetric = calculateWeightedZScores(metrics, costWeights, true); // Inversion applied
 
             costZScores = entities.map((entity, rowIndex) => {
                 const totalZScore = zScoresByMetric.reduce((sum, colZScores) => sum + parseFloat(colZScores[rowIndex]), 0);
@@ -357,8 +422,6 @@ Italy    1.19    0.48
 
         // Calculate overall ranking based on performance and cost Z-scores
         function calculateOverallRanking() {
-            const { headers: performanceHeaders } = parseInputData('performanceData');
-
             if (performanceZScores.length === 0 || costZScores.length === 0) {
                 document.getElementById('overallResults').innerHTML = '<p class="error">Please calculate both performance and cost Z-scores first.</p>';
                 return;
@@ -376,9 +439,8 @@ Italy    1.19    0.48
 
             overallScores.sort((a, b) => b.overallZ - a.overallZ);
 
-            const columnAHeader = performanceHeaders[0] || 'Entity';
             let resultHTML = `<h3>Overall Performance Ranking:</h3><table>
-                              <tr><th>${columnAHeader}</th><th>Performance Z-Score</th><th>Cost Z-Score</th><th>Overall Z-Score</th></tr>`;
+                              <tr><th>Entity</th><th>Performance Z-Score</th><th>Cost Z-Score</th><th>Overall Z-Score</th></tr>`;
             overallScores.forEach(item => {
                 resultHTML += `<tr>
                                 <td>${item.entity}</td>
