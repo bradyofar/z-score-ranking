@@ -135,6 +135,7 @@
             border-radius: 8px;
             background-color: #fff;
             box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
         }
 
         .chart-container canvas {
@@ -202,9 +203,25 @@
             padding: 5px;
         }
 
+        .color-picker-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+        }
+
         .color-picker {
-            margin: 10px 0;
-            text-align: center;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .color-picker label {
+            margin-right: 5px;
         }
     </style>
 </head>
@@ -212,7 +229,7 @@
     <div class="container">
         <h1>Z-Score Ranking Index</h1>
         <p class="intro-text">
-            Welcome! This tool helps you compare data fairly by calculating Z-scores for your performance and cost metrics with customisable weighting. Let’s walk through the steps together!
+            Welcome! This tool helps you compare data fairly by calculating Z-scores for your performance and cost metrics with customizable weighting. Let’s walk through the steps together!
         </p>
 
         <div class="input-section">
@@ -266,16 +283,26 @@ Italy    1.19    0.48
             <button onclick="calculateOverallRanking()">Calculate Overall Ranking</button>
         </div>
 
-        <div class="color-picker">
-            <label for="barColor">Choose Bar Color: </label>
-            <input type="color" id="barColor" value="#f1623c" onchange="updateChartColor()">
+        <div class="color-picker-container">
+            <div class="color-picker">
+                <label for="barColor">Bar Color:</label>
+                <input type="color" id="barColor" value="#f1623c" onchange="updateChartColor()">
+            </div>
+            <div class="color-picker">
+                <label for="bgColor">Background Color:</label>
+                <input type="color" id="bgColor" value="#ffffff" onchange="updateChartColor()">
+            </div>
+            <div class="color-picker">
+                <label for="axesColor">Axes and Title Color:</label>
+                <input type="color" id="axesColor" value="#333333" onchange="updateChartColor()">
+            </div>
         </div>
 
         <div id="overallResults" class="results"></div>
 
         <div class="chart-container">
             <h3 id="chartTitle" style="text-align: center; margin-bottom: 10px;"></h3>
-            <canvas id="overallChart"></canvas>
+            <canvas id="overallChart" style="max-height: 400px;"></canvas>
         </div>
 
     </div>
@@ -289,7 +316,9 @@ Italy    1.19    0.48
         let overallScores = [];
         let performanceWeights = [];
         let costWeights = [];
-        let chartColor = '#f1623c'; // Default chart color
+        let chartColor = '#f1623c'; // Default bar color
+        let backgroundColor = '#ffffff'; // Default background color
+        let axesColor = '#333333'; // Default axes and title color
 
         function parseInputData(elementId) {
             const inputData = document.getElementById(elementId).innerText.trim();
@@ -361,7 +390,9 @@ Italy    1.19    0.48
 
         function updateChartColor() {
             chartColor = document.getElementById('barColor').value;
-            renderOverallChart(); // Re-render the chart with the new color
+            backgroundColor = document.getElementById('bgColor').value;
+            axesColor = document.getElementById('axesColor').value;
+            renderOverallChart(overallScores); // Re-render the chart with the new colors
         }
 
         // Calculate mean and standard deviation for Z-score calculation
@@ -376,7 +407,6 @@ Italy    1.19    0.48
             return metrics[0].map((_, colIndex) => {
                 const columnData = metrics.map(row => row[colIndex]);
                 const stats = calculateMeanAndStd(columnData);
-                // Invert if it's a cost metric
                 const zScores = columnData.map(value => ((value - stats.mean) / stats.std) * weights[colIndex]);
                 return shouldInverse ? zScores.map(score => score * -1) : zScores;
             });
@@ -441,7 +471,6 @@ Italy    1.19    0.48
             let scoresToUse = [];
 
             if (performanceZScores.length > 0 && costZScores.length > 0) {
-                // Combine both performance and cost Z-scores
                 overallScores = performanceZScores.map(perf => {
                     const cost = costZScores.find(c => c.entity === perf.entity);
                     return {
@@ -453,7 +482,6 @@ Italy    1.19    0.48
                 });
                 scoresToUse = overallScores;
             } else if (performanceZScores.length > 0) {
-                // Use only performance Z-scores
                 scoresToUse = performanceZScores.map(perf => ({
                     entity: perf.entity,
                     performanceZ: parseFloat(perf.totalZScore),
@@ -461,7 +489,6 @@ Italy    1.19    0.48
                     overallZ: parseFloat(perf.totalZScore)
                 }));
             } else if (costZScores.length > 0) {
-                // Use only cost Z-scores
                 scoresToUse = costZScores.map(cost => ({
                     entity: cost.entity,
                     performanceZ: 0,
@@ -496,9 +523,6 @@ Italy    1.19    0.48
             const labels = scores.map(item => item.entity);
             const data = scores.map(item => item.overallZ);
 
-            const chartTitle = 'Aggregated Z-Value Performance Index';
-            document.getElementById('chartTitle').innerText = chartTitle;
-
             if (window.overallChartInstance) {
                 window.overallChartInstance.destroy();
             }
@@ -510,25 +534,55 @@ Italy    1.19    0.48
                     datasets: [{
                         label: 'Overall Z-Score',
                         data: data,
-                        backgroundColor: chartColor, // Set to the selected color
+                        backgroundColor: chartColor,
                         borderColor: chartColor,
                         borderWidth: 1
                     }]
                 },
                 options: {
                     indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: true,
                     scales: {
                         x: {
-                            beginAtZero: true
+                            beginAtZero: true,
+                            grid: {
+                                display: true // Removed horizontal grid lines
+                            },
+                            ticks: {
+                                color: axesColor // Apply color to x-axis ticks
+                            }
+                        },
+                        y: {
+                            grid: {
+                                display: false // Removed horizontal grid lines
+                            },
+                            ticks: {
+                                color: axesColor // Apply color to y-axis ticks
+                            }
                         }
                     },
                     plugins: {
                         legend: {
                             display: false
+                        },
+                        title: {
+                            display: true,
+                            text: 'Aggregated Z-Value Performance Index',
+                            color: axesColor, // Apply color to title
+                            font: {
+                                size: 16
+                            }
                         }
+                    },
+                    layout: {
+                        padding: 20
                     }
                 }
             });
+
+            // Apply the selected background color to the canvas
+            ctx.canvas.style.backgroundColor = backgroundColor;
         }
     </script>
 </body>
