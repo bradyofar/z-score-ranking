@@ -220,49 +220,11 @@
             gap: 10px;
         }
 
-        .color-picker label {
-            margin-right: 5px;
-        }
-
-        .hex-to-rgb {
-            text-align: center;
-            margin-top: 20px;
-            padding: 20px;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            background-color: #f9f9f9;
-            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
-        }
-
-        .hex-to-rgb input {
+        .color-input {
             padding: 8px;
-            margin-top: 10px;
-            font-size: 16px;
-            border: 1px solid #ddd;
+            width: 100px;
+            border: 1px solid #ccc;
             border-radius: 4px;
-            width: 70%;
-        }
-
-        .hex-to-rgb button {
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            margin-top: 10px;
-            border: none;
-            border-radius: 4px;
-            background-color: #f1623c;
-            color: white;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-        }
-
-        .hex-to-rgb button:hover {
-            background-color: #d94d1a;
-        }
-
-        .hex-to-rgb .output {
-            margin-top: 15px;
-            font-size: 18px;
-            color: #333;
         }
     </style>
     <!-- Add html2canvas script for capturing the chart -->
@@ -329,24 +291,19 @@ Italy    1.19    0.48
         <div class="color-picker-container">
             <div class="color-picker">
                 <label for="barColor">Bar Color:</label>
-                <input type="color" id="barColor" value="#f1623c" onchange="updateChartColor()">
+                <input type="color" id="barColorPicker" value="#f1623c" onchange="syncHexInput('barColorPicker', 'barColor'); updateChartColor('bar')">
+                <input type="text" class="color-input" id="barColor" placeholder="#f1623c" oninput="syncColorPicker('barColor', 'barColorPicker'); updateChartColor('bar')">
             </div>
             <div class="color-picker">
                 <label for="bgColor">Background Color:</label>
-                <input type="color" id="bgColor" value="#ffffff" onchange="updateChartColor()">
+                <input type="color" id="bgColorPicker" value="#ffffff" onchange="syncHexInput('bgColorPicker', 'bgColor'); updateChartColor('background')">
+                <input type="text" class="color-input" id="bgColor" placeholder="#ffffff" oninput="syncColorPicker('bgColor', 'bgColorPicker'); updateChartColor('background')">
             </div>
             <div class="color-picker">
                 <label for="axesColor">Axes and Title Color:</label>
-                <input type="color" id="axesColor" value="#333333" onchange="updateChartColor()">
+                <input type="color" id="axesColorPicker" value="#333333" onchange="syncHexInput('axesColorPicker', 'axesColor'); updateChartColor('axes')">
+                <input type="text" class="color-input" id="axesColor" placeholder="#333333" oninput="syncColorPicker('axesColor', 'axesColorPicker'); updateChartColor('axes')">
             </div>
-        </div>
-
-        <!-- Hex to RGB Converter Section -->
-        <div class="hex-to-rgb">
-            <h3>Hex to RGB Converter</h3>
-            <input type="text" id="hexInput" placeholder="Enter Hex Code (e.g., #FF5733)">
-            <button onclick="convertHexToRGB()">Convert</button>
-            <div class="output" id="rgbOutput"></div>
         </div>
 
         <div class="button-container">
@@ -451,11 +408,58 @@ Italy    1.19    0.48
             weights[index] = parseFloat(value) || 0; // Update the weight value, fallback to 0 if invalid
         }
 
-        function updateChartColor() {
-            chartColor = document.getElementById('barColor').value;
-            backgroundColor = document.getElementById('bgColor').value;
-            axesColor = document.getElementById('axesColor').value;
-            renderOverallChart(overallScores); // Re-render the chart with the new colors
+        function updateChartColor(type) {
+            // Validate and update the specific color based on the type
+            const isValidHex = /^#([0-9A-F]{3}){1,2}$/i;
+
+            if (type === 'bar') {
+                const barColorInput = document.getElementById('barColor').value.trim();
+                if (isValidHex.test(barColorInput)) {
+                    chartColor = barColorInput;
+                } else {
+                    alert('Invalid Bar Color Hex Code!');
+                    return;
+                }
+            }
+
+            if (type === 'background') {
+                const bgColorInput = document.getElementById('bgColor').value.trim();
+                if (isValidHex.test(bgColorInput)) {
+                    backgroundColor = bgColorInput;
+                } else {
+                    alert('Invalid Background Color Hex Code!');
+                    return;
+                }
+            }
+
+            if (type === 'axes') {
+                const axesColorInput = document.getElementById('axesColor').value.trim();
+                if (isValidHex.test(axesColorInput)) {
+                    axesColor = axesColorInput;
+                } else {
+                    alert('Invalid Axes and Title Color Hex Code!');
+                    return;
+                }
+            }
+
+            // Re-render the chart with the new colors
+            renderOverallChart(overallScores);
+        }
+
+        function syncHexInput(pickerId, inputId) {
+            // Sync the hex input with the color picker
+            const pickerValue = document.getElementById(pickerId).value;
+            document.getElementById(inputId).value = pickerValue;
+        }
+
+        function syncColorPicker(inputId, pickerId) {
+            // Sync the color picker with the hex input if the input is a valid hex
+            const inputValue = document.getElementById(inputId).value;
+            const isValidHex = /^#([0-9A-F]{3}){1,2}$/i;
+
+            if (isValidHex.test(inputValue)) {
+                document.getElementById(pickerId).value = inputValue;
+            }
         }
 
         // Calculate mean and standard deviation for Z-score calculation
@@ -677,34 +681,6 @@ Italy    1.19    0.48
             }).catch((error) => {
                 console.error('Error generating JPEG:', error);
             });
-        }
-
-        function convertHexToRGB() {
-            const hex = document.getElementById('hexInput').value.trim();
-            const rgbOutput = document.getElementById('rgbOutput');
-
-            // Regular expression to validate hex code format
-            const hexPattern = /^#?([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$/;
-
-            if (!hexPattern.test(hex)) {
-                rgbOutput.textContent = "Invalid hex code!";
-                return;
-            }
-
-            // Remove # if present
-            const cleanedHex = hex.startsWith('#') ? hex.slice(1) : hex;
-
-            // Convert shorthand hex to full hex
-            const fullHex = cleanedHex.length === 3 
-                ? cleanedHex.split('').map(char => char + char).join('') 
-                : cleanedHex;
-
-            // Convert hex to RGB values
-            const r = parseInt(fullHex.slice(0, 2), 16);
-            const g = parseInt(fullHex.slice(2, 4), 16);
-            const b = parseInt(fullHex.slice(4, 6), 16);
-
-            rgbOutput.textContent = `RGB: (${r}, ${g}, ${b})`;
         }
     </script>
 </body>
