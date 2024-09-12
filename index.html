@@ -6,26 +6,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Z-Score Ranking Calculator</title>
     <style>
+        :root {
+            --primary-color: #f1623c;
+            --secondary-color: #d94d1a;
+            --background-color: #ffffff;
+            --text-color: #333;
+            --border-color: #e0e0e0;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --input-bg-color: #fafafa;
+            --input-border-color: #dcdcdc;
+            --error-color: #d94d1a;
+            --table-header-bg: #f7f4f0;
+            --table-header-color: #d94d1a;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f1623c;
-            color: #333;
+            background-color: var(--primary-color);
+            color: var(--text-color);
         }
 
         .container {
             max-width: 1200px;
             margin: 40px auto;
             padding: 20px;
-            background-color: #fff;
+            background-color: var(--background-color);
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 10px var(--shadow-color);
         }
 
         h1 {
             text-align: center;
-            color: #f1623c;
+            color: var(--primary-color);
             margin-bottom: 20px;
             font-size: 32px;
         }
@@ -36,15 +50,15 @@
             align-items: center;
             margin-bottom: 30px;
             padding: 20px;
-            border: 1px solid #e0e0e0;
+            border: 1px solid var(--border-color);
             border-radius: 8px;
-            background-color: #f9f9f9;
-            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+            background-color: var(--input-bg-color);
+            box-shadow: 0 1px 5px var(--shadow-color);
         }
 
         .instruction-text {
             font-size: 18px;
-            color: #333;
+            color: var(--text-color);
             margin-bottom: 10px;
             text-align: center;
             display: block;
@@ -56,13 +70,13 @@
             width: 80%;
             max-width: 1000px;
             height: 150px;
-            border: 1px solid #dcdcdc;
+            border: 1px solid var(--input-border-color);
             border-radius: 4px;
             padding: 10px;
             font-family: monospace;
             white-space: pre;
             overflow: auto;
-            background-color: #fafafa;
+            background-color: var(--input-bg-color);
             caret-color: black;
             outline: none;
             margin: 0 auto 15px auto;
@@ -85,7 +99,7 @@
             padding: 12px 20px;
             border: none;
             border-radius: 4px;
-            background-color: #f1623c;
+            background-color: var(--primary-color);
             color: white;
             cursor: pointer;
             font-size: 16px;
@@ -94,7 +108,7 @@
         }
 
         button:hover {
-            background-color: #d94d1a;
+            background-color: var(--secondary-color);
             transform: translateY(-2px);
         }
 
@@ -103,7 +117,7 @@
         }
 
         .error {
-            color: #d94d1a;
+            color: var(--error-color);
             font-size: 14px;
             margin-top: 5px;
         }
@@ -121,9 +135,9 @@
         }
 
         th {
-            background-color: #f7f4f0;
+            background-color: var(--table-header-bg);
             font-weight: 600;
-            color: #d94d1a;
+            color: var(--table-header-color);
         }
 
         .chart-container {
@@ -131,10 +145,10 @@
             max-width: 600px;
             margin: 40px auto;
             padding: 20px;
-            border: 1px solid #e0e0e0;
+            border: 1px solid var(--border-color);
             border-radius: 8px;
-            background-color: #fff;
-            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+            background-color: var(--background-color);
+            box-shadow: 0 1px 5px var(--shadow-color);
             overflow: hidden;
         }
 
@@ -146,7 +160,7 @@
         .button-container h3 {
             font-size: 20px;
             margin-bottom: 10px;
-            color: #f1623c;
+            color: var(--primary-color);
             text-align: center;
             width: 100%;
         }
@@ -154,7 +168,7 @@
         .input-section h3 {
             font-size: 20px;
             margin-bottom: 10px;
-            color: #f1623c;
+            color: var(--primary-color);
         }
 
         p {
@@ -172,11 +186,11 @@
 
         .result-box {
             flex: 1;
-            border: 1px solid #e0e0e0;
+            border: 1px solid var(--border-color);
             border-radius: 8px;
             padding: 10px;
-            background-color: #f9f9f9;
-            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+            background-color: var(--input-bg-color);
+            box-shadow: 0 1px 5px var(--shadow-color);
         }
 
         .weights-container {
@@ -209,8 +223,8 @@
             gap: 20px;
             margin-top: 10px;
             padding: 10px;
-            background-color: #f9f9f9;
-            border: 1px solid #e0e0e0;
+            background-color: var(--input-bg-color);
+            border: 1px solid var(--border-color);
             border-radius: 8px;
         }
 
@@ -232,456 +246,461 @@
 </head>
 <body>
     <div class="container">
-        <h1>Z-Score Ranking Index</h1>
-        <p class="intro-text">
-            Welcome! This tool helps you compare data fairly by calculating Z-scores for your performance and cost metrics with customisable weighting.
-        </p>
-
-        <div class="input-section">
-            <h3>Step 1: Input Your Performance Data</h3>
-            <span class="instruction-text">Paste your performance data below. Include headers (e.g., Engagement rate, Click-through rates).</span>
-            <div class="spreadsheet-input" contenteditable="true" id="performanceData" 
-                 placeholder="Country [TAB] CTR [TAB] E/R&#10;France [TAB] 35.74% [TAB] 46.91%&#10;Germany [TAB] 15.37% [TAB] 48.66%&#10;Italy [TAB] 27.41% [TAB] 19.81%">
+        <header>
+            <h1>Z-Score Ranking Index</h1>
+            <p class="intro-text">
+                Welcome! This tool helps you compare data fairly by calculating Z-scores for your performance and cost metrics with customizable weighting.
+            </p>
+        </header>
+        <main>
+            <section class="input-section">
+                <h3>Step 1: Input Your Performance Data</h3>
+                <span class="instruction-text">Paste your performance data below. Include headers (e.g., Engagement rate, Click-through rates).</span>
+                <div class="spreadsheet-input" contenteditable="true" id="performanceData"
+                     placeholder="Country [TAB] CTR [TAB] E/R&#10;France [TAB] 35.74% [TAB] 46.91%&#10;Germany [TAB] 15.37% [TAB] 48.66%&#10;Italy [TAB] 27.41% [TAB] 19.81%">
 Country    CTR    E/R
 France    0.74%    46.91%
 Germany    0.37%    48.66%
 Italy    0.41%    19.81%
-            </div>
-            <div class="button-container">
-                <button onclick="setupPerformanceWeights()">Setup Performance Weights</button>
-            </div>
-            <div class="weights-container" id="performanceWeightsContainer"></div>
-            <div class="button-container">
-                <button onclick="calculatePerformanceZScores()">Calculate Performance Z-Scores</button>
-                <div id="performanceFeedback" class="results"></div>
-            </div>
-        </div>
+                </div>
+                <div class="button-container">
+                    <button onclick="ZScoreCalculator.setupPerformanceWeights()">Setup Performance Weights</button>
+                </div>
+                <div class="weights-container" id="performanceWeightsContainer"></div>
+                <div class="button-container">
+                    <button onclick="ZScoreCalculator.calculatePerformanceZScores()">Calculate Performance Z-Scores</button>
+                    <div id="performanceFeedback" class="results"></div>
+                </div>
+            </section>
 
-        <div class="input-section">
-            <h3>Step 2: Input Your Cost Data</h3>
-            <span class="instruction-text">Paste your cost data below. Include headers (e.g., CPM, CPC, CPE).</span>
-            <div class="spreadsheet-input" contenteditable="true" id="costData" 
-                 placeholder="Country [TAB] CPM [TAB] CPC&#10;France [TAB] 1.06 [TAB] 0.45&#10;Germany [TAB] 1.13 [TAB] 0.52&#10;Italy [TAB] 1.19 [TAB] 0.48">
+            <section class="input-section">
+                <h3>Step 2: Input Your Cost Data</h3>
+                <span class="instruction-text">Paste your cost data below. Include headers (e.g., CPM, CPC, CPE).</span>
+                <div class="spreadsheet-input" contenteditable="true" id="costData"
+                     placeholder="Country [TAB] CPM [TAB] CPC&#10;France [TAB] 1.06 [TAB] 0.45&#10;Germany [TAB] 1.13 [TAB] 0.52&#10;Italy [TAB] 1.19 [TAB] 0.48">
 Country    CPM    CPC
 France    1.06    0.45
 Germany    1.13    0.52
 Italy    1.19    0.48
-            </div>
-            <div class="button-container">
-                <button onclick="setupCostWeights()">Setup Cost Weights</button>
-            </div>
-            <div class="weights-container" id="costWeightsContainer"></div>
-            <div class="button-container">
-                <button onclick="calculateCostZScores()">Calculate Cost Z-Scores</button>
-                <div id="costFeedback" class="results"></div>
-            </div>
-        </div>
+                </div>
+                <div class="button-container">
+                    <button onclick="ZScoreCalculator.setupCostWeights()">Setup Cost Weights</button>
+                </div>
+                <div class="weights-container" id="costWeightsContainer"></div>
+                <div class="button-container">
+                    <button onclick="ZScoreCalculator.calculateCostZScores()">Calculate Cost Z-Scores</button>
+                    <div id="costFeedback" class="results"></div>
+                </div>
+            </section>
 
-        <div class="results-container">
-            <div class="result-box" id="performanceResults"></div>
-            <div class="result-box" id="costResults"></div>
-        </div>
+            <section class="results-container">
+                <div class="result-box" id="performanceResults"></div>
+                <div class="result-box" id="costResults"></div>
+            </section>
 
-        <div class="button-container">
-            <h3>Step 3: Get Your Overall Ranking</h3>
-            <p>Click the button below to see the combined performance and cost rankings!</p>
-            <button onclick="calculateOverallRanking()">Calculate Overall Ranking</button>
-        </div>
+            <section class="button-container">
+                <h3>Step 3: Get Your Overall Ranking</h3>
+                <p>Click the button below to see the combined performance and cost rankings!</p>
+                <button onclick="ZScoreCalculator.calculateOverallRanking()">Calculate Overall Ranking</button>
+            </section>
 
-        <div class="color-picker-container">
-            <div class="color-picker">
-                <label for="barColor">Bar Color:</label>
-                <input type="color" id="barColorPicker" value="#f1623c" onchange="syncHexInput('barColorPicker', 'barColor'); updateChartColor('bar')">
-                <input type="text" class="color-input" id="barColor" placeholder="#f1623c" oninput="syncColorPicker('barColor', 'barColorPicker'); updateChartColor('bar')">
-            </div>
-            <div class="color-picker">
-                <label for="bgColor">Background Color:</label>
-                <input type="color" id="bgColorPicker" value="#ffffff" onchange="syncHexInput('bgColorPicker', 'bgColor'); updateChartColor('background')">
-                <input type="text" class="color-input" id="bgColor" placeholder="#ffffff" oninput="syncColorPicker('bgColor', 'bgColorPicker'); updateChartColor('background')">
-            </div>
-            <div class="color-picker">
-                <label for="axesColor">Axes and Title Color:</label>
-                <input type="color" id="axesColorPicker" value="#333333" onchange="syncHexInput('axesColorPicker', 'axesColor'); updateChartColor('axes')">
-                <input type="text" class="color-input" id="axesColor" placeholder="#333333" oninput="syncColorPicker('axesColor', 'axesColorPicker'); updateChartColor('axes')">
-            </div>
-        </div>
+            <section class="color-picker-container">
+                <div class="color-picker">
+                    <label for="barColor">Bar Color:</label>
+                    <input type="color" id="barColorPicker" value="#f1623c" onchange="ZScoreCalculator.syncHexInput('barColorPicker', 'barColor'); ZScoreCalculator.updateChartColor('bar')">
+                    <input type="text" class="color-input" id="barColor" placeholder="#f1623c" oninput="ZScoreCalculator.syncColorPicker('barColor', 'barColorPicker'); ZScoreCalculator.updateChartColor('bar')">
+                </div>
+                <div class="color-picker">
+                    <label for="bgColor">Background Color:</label>
+                    <input type="color" id="bgColorPicker" value="#ffffff" onchange="ZScoreCalculator.syncHexInput('bgColorPicker', 'bgColor'); ZScoreCalculator.updateChartColor('background')">
+                    <input type="text" class="color-input" id="bgColor" placeholder="#ffffff" oninput="ZScoreCalculator.syncColorPicker('bgColor', 'bgColorPicker'); ZScoreCalculator.updateChartColor('background')">
+                </div>
+                <div class="color-picker">
+                    <label for="axesColor">Axes and Title Color:</label>
+                    <input type="color" id="axesColorPicker" value="#333333" onchange="ZScoreCalculator.syncHexInput('axesColorPicker', 'axesColor'); ZScoreCalculator.updateChartColor('axes')">
+                    <input type="text" class="color-input" id="axesColor" placeholder="#333333" oninput="ZScoreCalculator.syncColorPicker('axesColor', 'axesColorPicker'); ZScoreCalculator.updateChartColor('axes')">
+                </div>
+            </section>
 
-        <div class="button-container">
-            <label>
-                <input type="checkbox" id="removeNegativesCheckbox" onchange="calculateOverallRanking()">
-                Remove Negative Values
-            </label>
-        </div>
+            <section class="button-container">
+                <label>
+                    <input type="checkbox" id="removeNegativesCheckbox" onchange="ZScoreCalculator.calculateOverallRanking()">
+                    Remove Negative Values
+                </label>
+            </section>
 
-        <div id="overallResults" class="results"></div>
+            <section id="overallResults" class="results"></section>
 
-        <div class="chart-container">
-            <h3 id="chartTitle" style="text-align: center; margin-bottom: 10px;"></h3>
-            <canvas id="overallChart" style="max-height: 400px;"></canvas>
-        </div>
+            <section class="chart-container">
+                <h3 id="chartTitle" style="text-align: center; margin-bottom: 10px;"></h3>
+                <canvas id="overallChart" style="max-height: 400px;"></canvas>
+            </section>
 
-        <!-- Add this button to download the chart as a JPEG -->
-        <div class="button-container">
-            <button onclick="downloadChartAsJPEG()">Download Chart as JPEG</button>
-        </div>
-
+            <section class="button-container">
+                <button onclick="ZScoreCalculator.downloadChartAsJPEG()">Download Chart as JPEG</button>
+            </section>
+        </main>
     </div>
 
     <!-- Include Chart.js Library -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script>
-        let performanceZScores = [];
-        let costZScores = [];
-        let overallScores = [];
-        let performanceWeights = [];
-        let costWeights = [];
-        let chartColor = '#f1623c'; // Default bar color
-        let backgroundColor = '#ffffff'; // Default background color
-        let axesColor = '#333333'; // Default axes and title color
+        const ZScoreCalculator = {
+            performanceZScores: [],
+            costZScores: [],
+            overallScores: [],
+            performanceWeights: [],
+            costWeights: [],
+            chartColor: '#f1623c',
+            backgroundColor: '#ffffff',
+            axesColor: '#333333',
 
-        function parseInputData(elementId) {
-            const inputData = document.getElementById(elementId).innerText.trim();
-            const rows = inputData.split('\n').filter(row => row.trim() !== '');
 
-            const headers = rows[0].split(/\t|\s{2,}/).map(cell => cell.trim());
-            rows.shift();
+            parseInputData(elementId) {
+                const inputData = document.getElementById(elementId).innerText.trim();
+                const rows = inputData.split('\n').filter(row => row.trim() !== '');
 
-            const data = rows.map(row => {
-                const splitRow = row.split(/\t|\s{2,}/);
-                const entity = splitRow[0];
-                const metrics = splitRow.slice(1).map(val => {
-                    let cleanVal = val.replace('%', '').replace(',', '.').trim();
-                    cleanVal = cleanVal.replace(/[^\d.-]/g, '');
-                    return cleanVal === "" ? NaN : parseFloat(cleanVal);
+                const headers = rows[0].split(/\t|\s{2,}/).map(cell => cell.trim());
+                rows.shift();
+
+                const data = rows.map(row => {
+                    const splitRow = row.split(/\t|\s{2,}/);
+                    const entity = splitRow[0];
+                    const metrics = splitRow.slice(1).map(val => {
+                        let cleanVal = val.replace('%', '').replace(',', '.').trim();
+                        cleanVal = cleanVal.replace(/[^\d.-]/g, '');
+                        return cleanVal === "" ? NaN : parseFloat(cleanVal);
+                    });
+                    return { entity, metrics };
                 });
-                return { entity, metrics };
-            });
 
-            let invalidCells = [];
-            data.forEach((row, rowIndex) => {
-                row.metrics.forEach((val, colIndex) => {
-                    if (isNaN(val)) {
-                        invalidCells.push(`Row ${rowIndex + 2}, Column ${headers[colIndex + 1]}`);
+                let invalidCells = [];
+                data.forEach((row, rowIndex) => {
+                    row.metrics.forEach((val, colIndex) => {
+                        if (isNaN(val)) {
+                            invalidCells.push(`Row ${rowIndex + 2}, Column ${headers[colIndex + 1]}`);
+                        }
+                    });
+                });
+
+                if (invalidCells.length > 0) {
+                    document.getElementById(elementId).insertAdjacentHTML(
+                        'afterend',
+                        `<p class="error">Invalid data detected in the following cells: ${invalidCells.join(', ')}. Ensure all values in metric columns are numeric and correctly formatted.</p>`
+                    );
+                    return { headers: [], entities: [], metrics: [] };
+                }
+
+                return { headers, entities: data.map(row => row.entity), metrics: data.map(row => row.metrics) };
+            },
+
+            setupPerformanceWeights() {
+                const { headers } = this.parseInputData('performanceData');
+                this.generateWeightInputs(headers, 'performanceWeightsContainer', this.performanceWeights);
+            },
+
+            setupCostWeights() {
+                const { headers } = this.parseInputData('costData');
+                this.generateWeightInputs(headers, 'costWeightsContainer', this.costWeights);
+            },
+
+            generateWeightInputs(headers, containerId, weightArray) {
+                const container = document.getElementById(containerId);
+                container.innerHTML = '';
+                headers.slice(1).forEach((header, index) => {
+                    const weightInput = document.createElement('div');
+                    weightInput.className = 'weight-input';
+                    weightInput.innerHTML = `
+                        <label for="${containerId}_weight_${index}">${header} Weight:</label>
+                        <input type="number" id="${containerId}_weight_${index}" value="1" min="0" step="0.1" oninput="ZScoreCalculator.updateWeights('${containerId}', ${index}, this.value)">
+                    `;
+                    container.appendChild(weightInput);
+                    weightArray[index] = 1; // Set default weight to 1
+                });
+            },
+
+            updateWeights(containerId, index, value) {
+                const weights = containerId === 'performanceWeightsContainer' ? this.performanceWeights : this.costWeights;
+                weights[index] = parseFloat(value) || 0; // Update the weight value, fallback to 0 if invalid
+            },
+
+            updateChartColor(type) {
+                // Validate and update the specific color based on the type
+                const isValidHex = /^#([0-9A-F]{3}){1,2}$/i;
+
+                if (type === 'bar') {
+                    const barColorInput = document.getElementById('barColor').value.trim();
+                    if (isValidHex.test(barColorInput)) {
+                        this.chartColor = barColorInput;
+                    } else {
+                        alert('Invalid Bar Color Hex Code!');
+                        return;
                     }
+                }
+
+                if (type === 'background') {
+                    const bgColorInput = document.getElementById('bgColor').value.trim();
+                    if (isValidHex.test(bgColorInput)) {
+                        this.backgroundColor = bgColorInput;
+                    } else {
+                        alert('Invalid Background Color Hex Code!');
+                        return;
+                    }
+                }
+
+                if (type === 'axes') {
+                    const axesColorInput = document.getElementById('axesColor').value.trim();
+                    if (isValidHex.test(axesColorInput)) {
+                        this.axesColor = axesColorInput;
+                    } else {
+                        alert('Invalid Axes and Title Color Hex Code!');
+                        return;
+                    }
+                }
+
+                // Re-render the chart with the new colors
+                this.renderOverallChart(this.overallScores);
+            },
+
+            syncHexInput(pickerId, inputId) {
+                // Sync the hex input with the color picker
+                const pickerValue = document.getElementById(pickerId).value;
+                document.getElementById(inputId).value = pickerValue;
+            },
+
+            syncColorPicker(inputId, pickerId) {
+                // Sync the color picker with the hex input if the input is a valid hex
+                const inputValue = document.getElementById(inputId).value;
+                const isValidHex = /^#([0-9A-F]{3}){1,2}$/i;
+
+                if (isValidHex.test(inputValue)) {
+                    document.getElementById(pickerId).value = inputValue;
+                  }
+            },
+
+            // Calculate mean and standard deviation for Z-score calculation
+            calculateMeanAndStd(arr) {
+                const mean = arr.reduce((a, b) => a + b, 0) / arr.length;
+                const std = Math.sqrt(arr.map(x => Math.pow(x - mean, 2)).reduce((a, b) => a + b) / arr.length);
+                return { mean, std };
+            },
+
+            // Calculate weighted Z-scores
+            calculateWeightedZScores(metrics, weights, shouldInverse = false) {
+                return metrics[0].map((_, colIndex) => {
+                    const columnData = metrics.map(row => row[colIndex]);
+                    const stats = calculateMeanAndStd(columnData);
+                    const zScores = columnData.map(value => ((value - stats.mean) / stats.std) * weights[colIndex]);
+                    return shouldInverse ? zScores.map(score => score * -1) : zScores;
                 });
-            });
+            },
 
-            if (invalidCells.length > 0) {
-                document.getElementById(elementId).insertAdjacentHTML(
-                    'afterend',
-                    `<p class="error">Invalid data detected in the following cells: ${invalidCells.join(', ')}. Ensure all values in metric columns are numeric and correctly formatted.</p>`
-                );
-                return { headers: [], entities: [], metrics: [] };
-            }
-
-            return { headers, entities: data.map(row => row.entity), metrics: data.map(row => row.metrics) };
-        }
-
-        function setupPerformanceWeights() {
-            const { headers } = parseInputData('performanceData');
-            generateWeightInputs(headers, 'performanceWeightsContainer', performanceWeights);
-        }
-
-        function setupCostWeights() {
-            const { headers } = parseInputData('costData');
-            generateWeightInputs(headers, 'costWeightsContainer', costWeights);
-        }
-
-        function generateWeightInputs(headers, containerId, weightArray) {
-            const container = document.getElementById(containerId);
-            container.innerHTML = '';
-            headers.slice(1).forEach((header, index) => {
-                const weightInput = document.createElement('div');
-                weightInput.className = 'weight-input';
-                weightInput.innerHTML = `
-                    <label for="${containerId}_weight_${index}">${header} Weight:</label>
-                    <input type="number" id="${containerId}_weight_${index}" value="1" min="0" step="0.1" oninput="updateWeights('${containerId}', ${index}, this.value)">
-                `;
-                container.appendChild(weightInput);
-                weightArray[index] = 1; // Set default weight to 1
-            });
-        }
-
-        function updateWeights(containerId, index, value) {
-            const weights = containerId === 'performanceWeightsContainer' ? performanceWeights : costWeights;
-            weights[index] = parseFloat(value) || 0; // Update the weight value, fallback to 0 if invalid
-        }
-
-        function updateChartColor(type) {
-            // Validate and update the specific color based on the type
-            const isValidHex = /^#([0-9A-F]{3}){1,2}$/i;
-
-            if (type === 'bar') {
-                const barColorInput = document.getElementById('barColor').value.trim();
-                if (isValidHex.test(barColorInput)) {
-                    chartColor = barColorInput;
-                } else {
-                    alert('Invalid Bar Color Hex Code!');
+            // Calculate performance Z-scores
+            calculatePerformanceZScores() {
+                let { headers, entities, metrics } = parseInputData('performanceData');
+                if (!metrics.length || metrics.some(row => row.some(isNaN))) {
+                    document.getElementById('performanceFeedback').innerHTML = '<p class="error">Please enter valid numbers for performance metrics.</p>';
                     return;
                 }
-            }
 
-            if (type === 'background') {
-                const bgColorInput = document.getElementById('bgColor').value.trim();
-                if (isValidHex.test(bgColorInput)) {
-                    backgroundColor = bgColorInput;
-                } else {
-                    alert('Invalid Background Color Hex Code!');
+                const zScoresByMetric = calculateWeightedZScores(metrics, performanceWeights);
+
+                performanceZScores = entities.map((entity, rowIndex) => {
+                    const totalZScore = zScoresByMetric.reduce((sum, colZScores) => sum + parseFloat(colZScores[rowIndex]), 0);
+                    return { entity, totalZScore: totalZScore.toFixed(6) };
+                });
+
+                performanceZScores.sort((a, b) => b.totalZScore - a.totalZScore);
+                displayResults('performanceResults', headers, performanceZScores, 'Performance');
+            },
+
+            // Calculate cost Z-scores (always inverted)
+            calculateCostZScores() {
+                let { headers, entities, metrics } = parseInputData('costData');
+                if (!metrics.length || metrics.some(row => row.some(isNaN))) {
+                    document.getElementById('costFeedback').innerHTML = '<p class="error">Please enter valid numbers for cost metrics.</p>';
                     return;
                 }
-            }
 
-            if (type === 'axes') {
-                const axesColorInput = document.getElementById('axesColor').value.trim();
-                if (isValidHex.test(axesColorInput)) {
-                    axesColor = axesColorInput;
-                } else {
-                    alert('Invalid Axes and Title Color Hex Code!');
-                    return;
-                }
-            }
+                const zScoresByMetric = calculateWeightedZScores(metrics, costWeights, true); // Inversion applied
 
-            // Re-render the chart with the new colors
-            renderOverallChart(overallScores);
-        }
+                costZScores = entities.map((entity, rowIndex) => {
+                    const totalZScore = zScoresByMetric.reduce((sum, colZScores) => sum + parseFloat(colZScores[rowIndex]), 0);
+                    return { entity, totalZScore: totalZScore.toFixed(6) };
+                });
 
-        function syncHexInput(pickerId, inputId) {
-            // Sync the hex input with the color picker
-            const pickerValue = document.getElementById(pickerId).value;
-            document.getElementById(inputId).value = pickerValue;
-        }
+                costZScores.sort((a, b) => b.totalZScore - a.totalZScore);
+                displayResults('costResults', headers, costZScores, 'Cost');
+            },
 
-        function syncColorPicker(inputId, pickerId) {
-            // Sync the color picker with the hex input if the input is a valid hex
-            const inputValue = document.getElementById(inputId).value;
-            const isValidHex = /^#([0-9A-F]{3}){1,2}$/i;
+            // Display results in a table format
+            displayResults(elementId, headers, scores, type) {
+                const zScoreLabel = type === 'Performance' ? 'Performance Z-Score' : 'Cost Z-Score';
 
-            if (isValidHex.test(inputValue)) {
-                document.getElementById(pickerId).value = inputValue;
-            }
-        }
+                let resultHTML = `<h3>${type} Results (Sorted by Z-Score):</h3><table>
+                                  <tr><th>${headers[0]}</th><th>${zScoreLabel}</th></tr>`;
+                scores.forEach(item => {
+                    resultHTML += `<tr>
+                                    <td>${item.entity}</td>
+                                    <td>${item.totalZScore}</td>
+                                   </tr>`;
+                });
+                resultHTML += '</table>';
+                document.getElementById(elementId).innerHTML = resultHTML;
+            },
 
-        // Calculate mean and standard deviation for Z-score calculation
-        function calculateMeanAndStd(arr) {
-            const mean = arr.reduce((a, b) => a + b, 0) / arr.length;
-            const std = Math.sqrt(arr.map(x => Math.pow(x - mean, 2)).reduce((a, b) => a + b) / arr.length);
-            return { mean, std };
-        }
+            // Calculate overall ranking based on performance and/or cost Z-scores
+              calculateOverallRanking() {
+                let scoresToUse = [];
 
-        // Calculate weighted Z-scores
-        function calculateWeightedZScores(metrics, weights, shouldInverse = false) {
-            return metrics[0].map((_, colIndex) => {
-                const columnData = metrics.map(row => row[colIndex]);
-                const stats = calculateMeanAndStd(columnData);
-                const zScores = columnData.map(value => ((value - stats.mean) / stats.std) * weights[colIndex]);
-                return shouldInverse ? zScores.map(score => score * -1) : zScores;
-            });
-        }
-
-        // Calculate performance Z-scores
-        function calculatePerformanceZScores() {
-            let { headers, entities, metrics } = parseInputData('performanceData');
-            if (!metrics.length || metrics.some(row => row.some(isNaN))) {
-                document.getElementById('performanceFeedback').innerHTML = '<p class="error">Please enter valid numbers for performance metrics.</p>';
-                return;
-            }
-
-            const zScoresByMetric = calculateWeightedZScores(metrics, performanceWeights);
-
-            performanceZScores = entities.map((entity, rowIndex) => {
-                const totalZScore = zScoresByMetric.reduce((sum, colZScores) => sum + parseFloat(colZScores[rowIndex]), 0);
-                return { entity, totalZScore: totalZScore.toFixed(6) };
-            });
-
-            performanceZScores.sort((a, b) => b.totalZScore - a.totalZScore);
-            displayResults('performanceResults', headers, performanceZScores, 'Performance');
-        }
-
-        // Calculate cost Z-scores (always inverted)
-        function calculateCostZScores() {
-            let { headers, entities, metrics } = parseInputData('costData');
-            if (!metrics.length || metrics.some(row => row.some(isNaN))) {
-                document.getElementById('costFeedback').innerHTML = '<p class="error">Please enter valid numbers for cost metrics.</p>';
-                return;
-            }
-
-            const zScoresByMetric = calculateWeightedZScores(metrics, costWeights, true); // Inversion applied
-
-            costZScores = entities.map((entity, rowIndex) => {
-                const totalZScore = zScoresByMetric.reduce((sum, colZScores) => sum + parseFloat(colZScores[rowIndex]), 0);
-                return { entity, totalZScore: totalZScore.toFixed(6) };
-            });
-
-            costZScores.sort((a, b) => b.totalZScore - a.totalZScore);
-            displayResults('costResults', headers, costZScores, 'Cost');
-        }
-
-        // Display results in a table format
-        function displayResults(elementId, headers, scores, type) {
-            const zScoreLabel = type === 'Performance' ? 'Performance Z-Score' : 'Cost Z-Score';
-
-            let resultHTML = `<h3>${type} Results (Sorted by Z-Score):</h3><table>
-                              <tr><th>${headers[0]}</th><th>${zScoreLabel}</th></tr>`;
-            scores.forEach(item => {
-                resultHTML += `<tr>
-                                <td>${item.entity}</td>
-                                <td>${item.totalZScore}</td>
-                               </tr>`;
-            });
-            resultHTML += '</table>';
-            document.getElementById(elementId).innerHTML = resultHTML;
-        }
-
-        // Calculate overall ranking based on performance and/or cost Z-scores
-        function calculateOverallRanking() {
-            let scoresToUse = [];
-
-            if (performanceZScores.length > 0 && costZScores.length > 0) {
-                overallScores = performanceZScores.map(perf => {
-                    const cost = costZScores.find(c => c.entity === perf.entity);
-                    return {
+                if (performanceZScores.length > 0 && costZScores.length > 0) {
+                    overallScores = performanceZScores.map(perf => {
+                        const cost = costZScores.find(c => c.entity === perf.entity);
+                        return {
+                            entity: perf.entity,
+                            performanceZ: parseFloat(perf.totalZScore),
+                            costZ: parseFloat(cost ? cost.totalZScore : 0),
+                            overallZ: parseFloat(perf.totalZScore) + parseFloat(cost ? cost.totalZScore : 0)
+                        };
+                    });
+                    scoresToUse = overallScores;
+                } else if (performanceZScores.length > 0) {
+                    scoresToUse = performanceZScores.map(perf => ({
                         entity: perf.entity,
                         performanceZ: parseFloat(perf.totalZScore),
-                        costZ: parseFloat(cost ? cost.totalZScore : 0),
-                        overallZ: parseFloat(perf.totalZScore) + parseFloat(cost ? cost.totalZScore : 0)
-                    };
-                });
-                scoresToUse = overallScores;
-            } else if (performanceZScores.length > 0) {
-                scoresToUse = performanceZScores.map(perf => ({
-                    entity: perf.entity,
-                    performanceZ: parseFloat(perf.totalZScore),
-                    costZ: 0,
-                    overallZ: parseFloat(perf.totalZScore)
-                }));
-            } else if (costZScores.length > 0) {
-                scoresToUse = costZScores.map(cost => ({
-                    entity: cost.entity,
-                    performanceZ: 0,
-                    costZ: parseFloat(cost.totalZScore),
-                    overallZ: parseFloat(cost.totalZScore)
-                }));
-            } else {
-                document.getElementById('overallResults').innerHTML = '<p class="error">Please calculate performance or cost Z-scores first.</p>';
-                return;
-            }
-
-            scoresToUse.sort((a, b) => b.overallZ - a.overallZ);
-
-            // Adjust values if "Remove Negative Values" is checked
-            const removeNegatives = document.getElementById('removeNegativesCheckbox').checked;
-            if (removeNegatives) {
-                const minOverallZ = Math.min(...scoresToUse.map(score => score.overallZ));
-                if (minOverallZ < 0) {
-                    const adjustment = Math.ceil(Math.abs(minOverallZ));
-                    scoresToUse = scoresToUse.map(score => ({
-                        ...score,
-                        overallZ: score.overallZ + adjustment
+                        costZ: 0,
+                        overallZ: parseFloat(perf.totalZScore)
                     }));
+                } else if (costZScores.length > 0) {
+                    scoresToUse = costZScores.map(cost => ({
+                        entity: cost.entity,
+                        performanceZ: 0,
+                        costZ: parseFloat(cost.totalZScore),
+                        overallZ: parseFloat(cost.totalZScore)
+                    }));
+                } else {
+                    document.getElementById('overallResults').innerHTML = '<p class="error">Please calculate performance or cost Z-scores first.</p>';
+                    return;
                 }
-            }
 
-            let resultHTML = `<h3>Overall Performance Ranking:</h3><table>
-                              <tr><th>Entity</th><th>Performance Score</th><th>Cost Score</th><th>Overall Score</th></tr>`;
-            scoresToUse.forEach(item => {
-                resultHTML += `<tr>
-                                <td>${item.entity}</td>
-                                <td>${item.performanceZ.toFixed(6)}</td>
-                                <td>${item.costZ.toFixed(6)}</td>
-                                <td>${item.overallZ.toFixed(6)}</td>
-                               </tr>`;
-            });
-            resultHTML += '</table>';
-            document.getElementById('overallResults').innerHTML = resultHTML;
-            renderOverallChart(scoresToUse);
-        }
+                scoresToUse.sort((a, b) => b.overallZ - a.overallZ);
 
-        // Render the overall performance chart using Chart.js
-        function renderOverallChart(scores) {
-            const ctx = document.getElementById('overallChart').getContext('2d');
-            const labels = scores.map(item => item.entity);
-            const data = scores.map(item => item.overallZ);
-
-            if (window.overallChartInstance) {
-                window.overallChartInstance.destroy();
-            }
-
-            window.overallChartInstance = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Overall Z-Score',
-                        data: data,
-                        backgroundColor: chartColor,
-                        borderColor: chartColor,
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    indexAxis: 'y',
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    scales: {
-                        x: {
-                            beginAtZero: true,
-                            grid: {
-                                display: true // 
-                            },
-                            ticks: {
-                                color: axesColor // Apply color to x-axis ticks
-                            }
-                        },
-                        y: {
-                            grid: {
-                                display: false // Removed horizontal grid lines
-                            },
-                            ticks: {
-                                color: axesColor // Apply color to y-axis ticks
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        title: {
-                            display: true,
-                            text: 'Aggregated Performance Index',
-                            color: axesColor, // Apply color to title
-                            font: {
-                                size: 16
-                            }
-                        }
-                    },
-                    layout: {
-                        padding: 20
+                // Adjust values if "Remove Negative Values" is checked
+                const removeNegatives = document.getElementById('removeNegativesCheckbox').checked;
+                if (removeNegatives) {
+                    const minOverallZ = Math.min(...scoresToUse.map(score => score.overallZ));
+                    if (minOverallZ < 0) {
+                        const adjustment = Math.ceil(Math.abs(minOverallZ));
+                        scoresToUse = scoresToUse.map(score => ({
+                            ...score,
+                            overallZ: score.overallZ + adjustment
+                        }));
                     }
                 }
-            });
 
-            // Apply the selected background color to the canvas
-            ctx.canvas.style.backgroundColor = backgroundColor;
+                let resultHTML = `<h3>Overall Performance Ranking:</h3><table>
+                                  <tr><th>Entity</th><th>Performance Score</th><th>Cost Score</th><th>Overall Score</th></tr>`;
+                scoresToUse.forEach(item => {
+                    resultHTML += `<tr>
+                                    <td>${item.entity}</td>
+                                    <td>${item.performanceZ.toFixed(6)}</td>
+                                    <td>${item.costZ.toFixed(6)}</td>
+                                    <td>${item.overallZ.toFixed(6)}</td>
+                                   </tr>`;
+                });
+                resultHTML += '</table>';
+                document.getElementById('overallResults').innerHTML = resultHTML;
+                renderOverallChart(scoresToUse);
+            },
+
+            // Render the overall performance chart using Chart.js
+              renderOverallChart(scores) {
+                const ctx = document.getElementById('overallChart').getContext('2d');
+                const labels = scores.map(item => item.entity);
+                const data = scores.map(item => item.overallZ);
+
+                if (window.overallChartInstance) {
+                    window.overallChartInstance.destroy();
+                }
+
+                window.overallChartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Overall Z-Score',
+                            data: data,
+                            backgroundColor: chartColor,
+                            borderColor: chartColor,
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                grid: {
+                                    display: true //
+                                },
+                                ticks: {
+                                    color: axesColor // Apply color to x-axis ticks
+                                }
+                            },
+                            y: {
+                                grid: {
+                                    display: false // Removed horizontal grid lines
+                                },
+                                ticks: {
+                                    color: axesColor // Apply color to y-axis ticks
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            title: {
+                                display: true,
+                                text: 'Aggregated Performance Index',
+                                color: axesColor, // Apply color to title
+                                font: {
+                                    size: 16
+                                }
+                            }
+                        },
+                        layout: {
+                            padding: 20
+                        }
+                    }
+                });
+
+                // Apply the selected background color to the canvas
+                ctx.canvas.style.backgroundColor = backgroundColor;
+            },
+
+            // Function to download the chart as a JPEG
+              downloadChartAsJPEG() {
+                const chartContainer = document.getElementById('overallChart');
+
+                // Use html2canvas to capture the chart
+                html2canvas(chartContainer, { backgroundColor: null }).then((canvas) => {
+                    const imgData = canvas.toDataURL('image/jpeg', 1.0);
+
+                    // Create a link to download the image
+                    const link = document.createElement('a');
+                    link.href = imgData;
+                    link.download = 'overall_chart.jpeg';
+                    link.click();
+                }).catch((error) => {
+                    console.error('Error generating JPEG:', error);
+                });
+            }
         }
-
-        // Function to download the chart as a JPEG
-        function downloadChartAsJPEG() {
-            const chartContainer = document.getElementById('overallChart');
-
-            // Use html2canvas to capture the chart
-            html2canvas(chartContainer, { backgroundColor: null }).then((canvas) => {
-                const imgData = canvas.toDataURL('image/jpeg', 1.0);
-
-                // Create a link to download the image
-                const link = document.createElement('a');
-                link.href = imgData;
-                link.download = 'overall_chart.jpeg';
-                link.click();
-            }).catch((error) => {
-                console.error('Error generating JPEG:', error);
-            });
-        }
-    </script>
+        </script>
+    </div>
 </body>
 </html>
